@@ -22,6 +22,7 @@ type Conf struct {
 	//mariadb config
 	DBusername		string	`yaml:"dbUsername"`
 	DBpassword 		string	`yaml:"dbPassword"`
+	DBhost			string	`yaml:"dbHost"`
 	DBport			string	`yaml:"dbPort"`
 	DBname 			string	`yaml:"dbName"`
 	Timeout			string	`yaml:"timeout"`

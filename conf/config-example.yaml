@@ -10,6 +10,7 @@ redissPassword: "$%TGVG&H*UBH"
 # mariadb
 dbUsername: "root"
 dbPassowrd: "%FTVGBUY7uvib89*Y&"
+dbHost: "192.168.122.11"
 dbPort: "3306"
 dbName: "odisk"
 timeout: "10s"

@@ -1,0 +1,27 @@
+# Use root/123456 as user/password for mariadb
+# adminer is a simple tool to control mariadb
+# Use 123456 as redis requirepass
+version: '3.1'
+
+services:
+  mariadb:
+    image: mariadb
+    container_name: db
+    restart: always
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./mariadb/data:/var/lib/mysql:rw
+    environment:
+      MARIADB_ROOT_PASSWORD: "123456"
+  redis:
+    image: redis
+    container_name: redis
+    restart: always
+    volumes:
+      - ./redis/data:/data:rw
+      - ./redis/conf/redis.conf:/usr/local/etc/redis/redis.conf:rw
+    command: redis-server /usr/local/etc/redis/redis.conf
+    ports:
+      - 6379:6379
+

@@ -10,3 +10,7 @@ func main()  {
 	c := conf.GerConfig()
 	fmt.Println(c.Mode)
 }
+
+func init()  {
+	conf.InitGorm()
+}

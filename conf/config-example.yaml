@@ -5,11 +5,11 @@ secret: "!QASEE%^TGFVB&"
 
 # redis
 redisAddr: "192.168.122.11"
-redissPassword: "$%TGVG&H*UBH"
+redissPassword: "TGVG8791HUBH"
 
 # mariadb
 dbUsername: "root"
-dbPassowrd: "%FTVGBUY7uvib89*Y&"
+dbPassowrd: "FTVGBUY7uvib89Y"
 dbHost: "192.168.122.11"
 dbPort: "3306"
 dbName: "odisk"

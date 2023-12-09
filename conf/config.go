@@ -40,13 +40,13 @@ func (conf *Conf)GerConfig() *Conf {
 
 	if _, err := os.Stat(path0); err == nil{
 		v.SetConfigFile(path0)
-		log.Println("conf from",path0)
+		// log.Println("conf from",path0)
 	}else if _, err := os.Stat(path1); err == nil{
 		v.SetConfigFile(path1)
-		log.Println("conf from", path1)
+		// log.Println("conf from", path1)
 	}else{
 		v.SetConfigFile(example)
-		log.Println("conf from",example)
+		// log.Println("conf from",example)
 	}
 
 	v.SetConfigType("yaml")

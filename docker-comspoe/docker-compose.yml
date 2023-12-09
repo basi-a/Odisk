@@ -1,0 +1,32 @@
+version: '3'
+
+services:
+  db:
+    image: mariadb:latest
+    container_name: db_container
+    restart: always
+    ports:
+      - "13306:3306"
+    volumes:
+      - ./db/data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: 'FTVGBUY7uvib89Y'
+      MYSQL_DATABASE: 'odisk'
+      MYSQL_USER: 'odisk'
+      MYSQL_PASSWORD: 'FTVGBUY7uvib89Y'
+      MYSQL_CHARSET: 'utf8mb4'
+      MYSQL_COLLATION: 'utf8mb4_general_ci'
+      # MYSQL_HOST: '%'
+  adminer:
+    image: adminer:latest
+    container_name: adminer_container
+    restart: always
+    ports:
+      - "18080:8080"
+  redis:
+    image: redis:latest
+    container_name: redis_container
+    restart: always
+    command: redis-server --requirepass TGVG8791HUBH --appendonly yes  
+    ports:  
+      - "16379:6379"

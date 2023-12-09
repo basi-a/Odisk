@@ -1,14 +1,14 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"odisk/conf"
 )
 
 func main()  {
 	conf := new(conf.Conf)
 	c := conf.GerConfig()
-	fmt.Println(c.Mode)
+	log.Println("running mode", c.Mode)
 }
 
 func init()  {

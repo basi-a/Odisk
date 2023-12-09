@@ -18,6 +18,7 @@ type Conf struct {
 	//redis config
 	RedisAddr		string	`yaml:"redisAddr"`
 	RedisPassword	string	`yaml:"redisPassword"`
+	RedisPort		string	`yaml:"redisPort"`
 	
 	//mariadb config
 	DBusername		string	`yaml:"dbUsername"`
@@ -28,25 +29,26 @@ type Conf struct {
 	Timeout			string	`yaml:"timeout"`
 }
 
+const (
+	path0="/etc/odisk/config.yaml"
+	path1="/usr/local/etc/odisk/config.yaml"
+	example="./conf/config-example.yaml"
+)
+
 func (conf *Conf)GerConfig() *Conf {
 	v := viper.New()
-	
-	if _, err := os.Stat("/etc/odisk/config.yaml"); err == nil{
-		v.SetConfigFile("/etc/odisk/config.yaml")
-		log.Println("conf path0")
-	}else if _, err := os.Stat("/usr/local/etc/odisk/config.yaml"); err == nil{
-		v.SetConfigFile("/usr/local/etc/odisk/config.yaml")
-		log.Println("conf path1")
+
+	if _, err := os.Stat(path0); err == nil{
+		v.SetConfigFile(path0)
+		log.Println("conf from",path0)
+	}else if _, err := os.Stat(path1); err == nil{
+		v.SetConfigFile(path1)
+		log.Println("conf from", path1)
 	}else{
-		v.SetConfigFile("./conf/config-example.yaml")
-		log.Println("conf example")
+		v.SetConfigFile(example)
+		log.Println("conf from",example)
 	}
-	// if _, err := os.Stat("/etc/odisk/config.yaml"); os.IsNotExist(err){
-	// 	v.SetConfigFile("./conf/config-example.yaml")
-		
-	// }else { 
-	// 	v.SetConfigFile("/etc/odisk/config.yaml")
-	// }
+
 	v.SetConfigType("yaml")
 
 	if err := v.ReadInConfig(); err != nil{

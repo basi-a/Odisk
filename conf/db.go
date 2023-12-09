@@ -2,7 +2,7 @@ package conf
 
 import (
 	"fmt"
-	"log"
+	// "log"
 
 	"gorm.io/driver/mysql" // mysql 数据库驱动
 	"gorm.io/gorm"         // 使用gorm,操作数据库的 orm 框架
@@ -15,7 +15,9 @@ var DB *gorm.DB
 func InitGorm()  {
 	conf := new(Conf)
 	c := conf.GerConfig()
+	// log.Println(c)
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local&timeout=%s", c.DBusername, c.DBpassword, c.DBhost, c.DBport, c.DBname, c.Timeout)
+	// log.Println(dsn)
 	var err error
 	DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
 		NamingStrategy: schema.NamingStrategy{
@@ -23,7 +25,7 @@ func InitGorm()  {
 		},
 	})
 	if err != nil {
-		log.Fatalln("database connection err", err)
+		panic("failed to connect database")
 	}
 	sqlDB, _ := DB.DB()
 

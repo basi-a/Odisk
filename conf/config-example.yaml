@@ -4,13 +4,14 @@ port: ":9999"
 secret: "!QASEE%^TGFVB&"
 
 # redis
-redisAddr: "192.168.122.11"
-redissPassword: "TGVG8791HUBH"
+redisAddr: "127.0.0.1"
+redisPort: "16379"
+redisPassword: "TGVG8791HUBH"
 
 # mariadb
-dbUsername: "root"
-dbPassowrd: "FTVGBUY7uvib89Y"
-dbHost: "192.168.122.11"
-dbPort: "3306"
+dbUsername: "odisk"
+dbPassword: "FTVGBUY7uvib89Y"
+dbHost: "127.0.0.1"
+dbPort: "13306"
 dbName: "odisk"
 timeout: "10s"

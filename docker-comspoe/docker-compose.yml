@@ -1,4 +1,4 @@
-version: '3'
+version: '3.2'
 
 services:
   db:
@@ -10,6 +10,7 @@ services:
     volumes:
       - ./db/data:/var/lib/mysql
     environment:
+      MARIADB_MYSQL_LOCALHOST_USER: 1
       MYSQL_ROOT_PASSWORD: 'FTVGBUY7uvib89Y'
       MYSQL_DATABASE: 'odisk'
       MYSQL_USER: 'odisk'
@@ -17,16 +18,49 @@ services:
       MYSQL_CHARSET: 'utf8mb4'
       MYSQL_COLLATION: 'utf8mb4_general_ci'
       # MYSQL_HOST: '%'
+
   adminer:
     image: adminer:latest
     container_name: adminer_container
     restart: always
     ports:
       - "18080:8080"
+    depends_on:
+      - db
+  
   redis:
     image: redis:latest
     container_name: redis_container
     restart: always
-    command: redis-server --requirepass TGVG8791HUBH --appendonly yes  
+    command: redis-server --requirepass TGVG8791HUBH --appendonly yes --bind 0.0.0.0
     ports:  
       - "16379:6379"
+  
+  minio:
+    image: quay.io/minio/minio
+    container_name: minio_container
+    restart: always
+
+    ports:
+      - "19000:9000"
+      - "19001:9001"
+    volumes:
+      - ./minio/data:/data
+      - ./minio/config:/root/.minio
+    environment:
+      MINIO_ROOT_USER: 'minioAdmin'
+      MINIO_ROOT_PASSWORD: '1qaz2wsxcde3'
+    command: server /data --console-address ":9001"
+
+  nginx:
+    image: nginx
+    container_name: nginx_container
+    ports:
+      - "8080:80"
+    volumes:
+      - ./static:/usr/share/nginx/html:ro
+    restart: always
+    depends_on:
+      - db 
+      - redis 
+      - minio

@@ -27,6 +27,11 @@ type Conf struct {
 	DBport			string	`yaml:"dbPort"`
 	DBname 			string	`yaml:"dbName"`
 	Timeout			string	`yaml:"timeout"`
+
+	//minio
+	Endpoint		string	`yaml:"endpoint"`
+	AccessKeyID		string	`yaml:"accessKeyID"`
+	SecretAccessKey string	`yaml:"secretAccessKey"`
 }
 
 const (

@@ -15,3 +15,8 @@ dbHost: "127.0.0.1"
 dbPort: "13306"
 dbName: "odisk"
 timeout: "10s"
+
+# minio
+endpoint: "127.0.0.1:9000"
+accessKeyID: "minioAdmin" 
+secretAccessKey: "1qaz2wsxcde3"

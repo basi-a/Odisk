@@ -14,7 +14,7 @@ var DB *gorm.DB
 
 func InitGorm()  {
 	conf := new(Conf)
-	c := conf.GerConfig()
+	c := conf.GetConfig()
 	// log.Println(c)
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local&timeout=%s", c.DBusername, c.DBpassword, c.DBhost, c.DBport, c.DBname, c.Timeout)
 	// log.Println(dsn)

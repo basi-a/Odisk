@@ -1,4 +1,4 @@
-version: '3.7'
+version: '3.8'
 
 # Settings and configurations that are common for all containers
 x-minio-common: &minio-common
@@ -17,15 +17,16 @@ x-minio-common: &minio-common
 
 
 services:
-  db:
+  mariadb:
     image: mariadb:latest
-    hostname: db
-    container_name: odisk_db
+    hostname: mariadb
+    container_name: odisk_mariadb
     restart: always
     ports:
       - "13306:3306"
     volumes:
       - ./db/data:/var/lib/mysql
+      - ./hosts:/etc/hosts
     environment:
       MARIADB_MYSQL_LOCALHOST_USER: 1
       MYSQL_ROOT_PASSWORD: 'FTVGBUY7uvib89Y'
@@ -35,6 +36,9 @@ services:
       MYSQL_CHARSET: 'utf8mb4'
       MYSQL_COLLATION: 'utf8mb4_general_ci'
       # MYSQL_HOST: '%'
+    networks: 
+      app-network:
+        ipv4_address: 172.40.20.10
 
   adminer:
     image: adminer:latest
@@ -43,9 +47,14 @@ services:
     restart: always
     ports:
       - "28080:8080"
+    volumes:
+      - ./hosts:/etc/hosts
     depends_on:
-      - db
-  
+      - mariadb
+    networks: 
+      app-network:
+        ipv4_address: 172.40.20.11
+
   redis:
     image: redis:latest
     hostname: redis
@@ -54,6 +63,11 @@ services:
     command: redis-server --requirepass TGVG8791HUBH --appendonly yes --bind 0.0.0.0
     ports:  
       - "16379:6379"
+    volumes:
+      - ./hosts:/etc/hosts
+    networks: 
+      app-network:
+        ipv4_address: 172.40.20.12
 
   nginx:
     image: nginx
@@ -63,50 +77,45 @@ services:
       - "8080:80"
     volumes:
       - ./static:/usr/share/nginx/html:ro
+      - ./hosts:/etc/hosts
     restart: always
     depends_on:
-      - db 
+      - mariadb 
       - redis
-      - haproxy1
-  
-  haproxy1:
-    image: haproxy:alpine
-    hostname: haproxy1
-    container_name: odisk_haproxy1
-    ports:
-      - "18080:8080"
-      - "19000:9000"
-      - "19001:9001"
-    restart: always
+    networks: 
+      app-network:
+        ipv4_address: 172.40.20.13
+
+  keepalived_haproxy1:
+    build:
+      context: ./haproxy-keepalived/.
+    container_name: odisk_keepalived_haproxy1
     volumes:
-      - ./config/haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
-    sysctls:
-      net.ipv4.ip_unprivileged_port_start: 0
-    command: haproxy -f /usr/local/etc/haproxy/haproxy.cfg
-
+      - ./haproxy-keepalived/config/haproxy.cfg:/etc/haproxy/haproxy.cfg
+      - ./haproxy-keepalived/config/keepalived1.conf:/etc/keepalived/keepalived.conf
+      - ./hosts:/etc/hosts
+    networks: 
+      app-network:
+        ipv4_address: 172.40.20.14
+    command: /sbin/init
+    privileged: true
+  keepalived_haproxy2:
+    build:
+      context: ./haproxy-keepalived/.
+    container_name: odisk_keepalived_haproxy2
+    volumes:
+      - ./haproxy-keepalived/config/haproxy.cfg:/etc/haproxy/haproxy.cfg
+      - ./haproxy-keepalived/config/keepalived2.conf:/etc/keepalived/keepalived.conf
+      - ./hosts:/etc/hosts
+    networks: 
+      app-network:
+        ipv4_address: 172.40.20.15
+    command: /sbin/init
     depends_on:
-      minio1:
-        condition: service_healthy
-      minio2:
-        condition: service_healthy
-      minio3:
-        condition: service_healthy
-      minio4:
-        condition: service_healthy
+      - keepalived_haproxy1
+    privileged: true
 
-  # haproxy2:
-  #   image: haproxy:alpine
-  #   container_name: haproxy_container1
-  #   ports:
-  #     - "18080:8080"
-  #     - "19000:9000"
-  #     - "19001:9001"
-  #   restart: always
-  #   volumes:
-  #     - ./config/haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
-  #   privileged: true
-  #   command: haproxy -c -f /usr/local/etc/haproxy/haproxy.cfg
-  
+
   minio1:
     <<: *minio-common
     hostname: minio1
@@ -114,7 +123,10 @@ services:
     volumes:
       - ./minio/data1-1:/data1
       - ./minio/data1-2:/data2
-
+      - ./hosts:/etc/hosts
+    networks: 
+      app-network:
+        ipv4_address: 172.40.20.16
   minio2:
     <<: *minio-common
     hostname: minio2
@@ -122,7 +134,10 @@ services:
     volumes:
       - ./minio/data2-1:/data1
       - ./minio/data2-2:/data2
-
+      - ./hosts:/etc/hosts
+    networks: 
+      app-network:
+        ipv4_address: 172.40.20.17
   minio3:
     <<: *minio-common
     hostname: minio3
@@ -130,7 +145,10 @@ services:
     volumes:
       - ./minio/data3-1:/data1
       - ./minio/data3-2:/data2
-
+      - ./hosts:/etc/hosts
+    networks: 
+      app-network:
+        ipv4_address: 172.40.20.18
   minio4:
     <<: *minio-common
     hostname: minio4
@@ -138,5 +156,16 @@ services:
     volumes:
       - ./minio/data4-1:/data1
       - ./minio/data4-2:/data2
+      - ./hosts:/etc/hosts
+    networks: 
+      app-network:
+        ipv4_address: 172.40.20.19
 
-
+        
+networks:
+  app-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.40.20.0/24
+          gateway: 172.40.20.1

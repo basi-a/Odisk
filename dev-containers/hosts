@@ -1,0 +1,21 @@
+127.0.0.1       localhost
+::1     localhost ip6-localhost ip6-loopback
+fe00::0 ip6-localnet
+ff00::0 ip6-mcastprefix
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters
+172.40.20.10    mariadb
+172.40.20.11    adminer
+172.40.20.12    redis
+172.40.20.13    nginx
+172.40.20.14    keepalived_haproxy1
+172.40.20.15    keepalived_haproxy2
+172.40.20.16    minio1
+172.40.20.17    minio2
+172.40.20.18    minio3
+172.40.20.19    minio4
+172.40.20.20    app1
+172.40.20.21    app2
+172.40.20.22    app3
+172.40.20.23    app4
+172.40.20.100   keepalived_vip    

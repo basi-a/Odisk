@@ -7,7 +7,7 @@ import (
 
 func main()  {
 	conf := new(conf.Conf)
-	c := conf.GerConfig()
+	c := conf.GetConfig()
 	log.Println("running mode", c.Mode)
 }
 

@@ -39,8 +39,6 @@ x-keepalived-haproxy-common: &keepalived-haproxy-common
   <<: *hosts-common
   build:
     context: ./haproxy-keepalived/.
-  volumes:
-    - ./haproxy-keepalived/config/haproxy.cfg:/etc/haproxy/haproxy.cfg
   depends_on: 
     minio1:
       condition: service_healthy
@@ -175,6 +173,7 @@ services:
     container_name: odisk_keepalived_haproxy1
     volumes:
       - ./haproxy-keepalived/config/keepalived1.conf:/etc/keepalived/keepalived.conf
+      - ./haproxy-keepalived/config/haproxy.cfg:/etc/haproxy/haproxy.cfg
     networks: 
       app-network:
         ipv4_address: 172.40.20.14
@@ -184,6 +183,7 @@ services:
     container_name: odisk_keepalived_haproxy2
     volumes:
       - ./haproxy-keepalived/config/keepalived2.conf:/etc/keepalived/keepalived.conf
+      - ./haproxy-keepalived/config/haproxy.cfg:/etc/haproxy/haproxy.cfg
     networks: 
       app-network:
         ipv4_address: 172.40.20.15

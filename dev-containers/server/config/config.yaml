@@ -1,22 +1,22 @@
 # server
-mode: "debug"
-port: ":9999"
+mode: "release"
+port: ":7000"
 secret: "!QASEE%^TGFVB&"
 
 # redis
-redisAddr: "127.0.0.1"
-redisPort: "16379"
+redisAddr: "redis"
+redisPort: "6379"
 redisPassword: "TGVG8791HUBH"
 
 # mariadb
 dbUsername: "odisk"
 dbPassword: "FTVGBUY7uvib89Y"
-dbHost: "127.0.0.1"
-dbPort: "13306"
+dbHost: "mariadb"
+dbPort: "3306"
 dbName: "odisk"
 timeout: "10s"
 
 # minio
-endpoint: "127.0.0.1:9000"
+endpoint: "keepalived_vip:9000"
 accessKeyID: "minioadmin" 
 secretAccessKey: "minioadmin"

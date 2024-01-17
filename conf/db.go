@@ -2,6 +2,7 @@ package conf
 
 import (
 	"fmt"
+	"log"
 	// "log"
 
 	"gorm.io/driver/mysql" // mysql 数据库驱动
@@ -16,16 +17,23 @@ func InitGorm()  {
 	conf := new(Conf)
 	c := conf.GetConfig()
 	// log.Println(c)
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local&timeout=%s", c.DBusername, c.DBpassword, c.DBhost, c.DBport, c.DBname, c.Timeout)
-	// log.Println(dsn)
 	var err error
-	DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
-		NamingStrategy: schema.NamingStrategy{
-			SingularTable: true,
-		},
-	})
+	maxRetryCount := 5
+	for retryCount := 0; retryCount < maxRetryCount; retryCount++{
+		dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local&timeout=%s", c.DBusername, c.DBpassword, c.DBhost, c.DBport, c.DBname, c.Timeout)
+		// log.Println(dsn)
+		
+		DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
+			NamingStrategy: schema.NamingStrategy{
+				SingularTable: true,
+			},
+		})
+		if err == nil {
+			break
+		}
+	}
 	if err != nil {
-		panic("failed to connect database")
+		log.Fatalf("Failed to connect database after %d attempts\n", maxRetryCount)
 	}
 	sqlDB, _ := DB.DB()
 

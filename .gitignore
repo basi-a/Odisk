@@ -1,1 +1,5 @@
 odisk
+dev-containers/static
+dev-containers/db
+dev-containers/minio
+dev-containers/log

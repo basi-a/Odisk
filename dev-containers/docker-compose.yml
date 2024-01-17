@@ -2,8 +2,22 @@ version: '3.8'
 
 # Settings and configurations that are common for all containers
 x-hosts-common: &hosts-common
-  volumes:
-    - ./hosts:/etc/hosts
+  extra_hosts:
+      - "mariadb:172.40.20.10"
+      - "adminer:172.40.20.11"
+      - "redis:172.40.20.12"
+      - "nginx:172.40.20.13"
+      - "keepalived_haproxy1:172.40.20.14"
+      - "keepalived_haproxy2:172.40.20.15"
+      - "minio1:172.40.20.16"
+      - "minio2:172.40.20.17"
+      - "minio3:172.40.20.18"
+      - "minio4:172.40.20.19"
+      - "server1:172.40.20.20"
+      - "server2:172.40.20.21"
+      - "server3:172.40.20.22"
+      - "server4:172.40.20.23"
+      - "keepalived_vip:172.40.20.100"
 
 x-minio-common: &minio-common
   <<: *hosts-common
@@ -17,7 +31,8 @@ x-minio-common: &minio-common
     MINIO_ROOT_PASSWORD: minioadmin
   healthcheck:
     test: ["CMD", "mc", "ready", "local"]
-    interval: 5s
+    interval: 10s
+    retries: 10
     timeout: 5s
 
 x-keepalived-haproxy-common: &keepalived-haproxy-common
@@ -26,12 +41,29 @@ x-keepalived-haproxy-common: &keepalived-haproxy-common
     context: ./haproxy-keepalived/.
   volumes:
     - ./haproxy-keepalived/config/haproxy.cfg:/etc/haproxy/haproxy.cfg
+  depends_on: 
+    minio1:
+      condition: service_healthy
+    minio2:
+      condition: service_healthy
+    minio3:
+      condition: service_healthy
+    minio4:
+      condition: service_healthy
+    server1:
+      condition: service_healthy
+    server2:
+      condition: service_healthy
+    server3:
+      condition: service_healthy
+    server4:
+      condition: service_healthy
+
   command: /sbin/init
   privileged: true  
 
 x-server-common: &server-common
   <<: *hosts-common
-  # image: alpine:20231219
   build:
     context: ./server/.
   volumes:
@@ -39,12 +71,25 @@ x-server-common: &server-common
     - ./log/odisk:/var/log/odisk
   expose: 
     - "7000"
+  command: /opt/odisk
   healthcheck:
     test: ["CMD", "curl", "-f", "http://localhost:7000/ping"]
-    interval: 5s
+    interval: 10s
+    retries: 10
     timeout: 5s
-  command: /bin/bash
-  
+  depends_on:
+    minio1:
+      condition: service_healthy
+    minio2:
+      condition: service_healthy
+    minio3:
+      condition: service_healthy
+    minio4:
+      condition: service_healthy
+    mariadb:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
 services:
   mariadb:
     <<: *hosts-common
@@ -64,11 +109,16 @@ services:
       MYSQL_PASSWORD: 'FTVGBUY7uvib89Y'
       MYSQL_CHARSET: 'utf8mb4'
       MYSQL_COLLATION: 'utf8mb4_general_ci'
-      # MYSQL_HOST: '%'
+      MYSQL_HOST: '%'
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/healthcheck.sh", "--su-mysql", "--connect"]
+      interval: 10s
+      retries: 10
+      timeout: 5s
     networks: 
       app-network:
         ipv4_address: 172.40.20.10
-
+      
   adminer:
     <<: *hosts-common
     image: adminer:latest
@@ -92,6 +142,11 @@ services:
     command: redis-server --requirepass TGVG8791HUBH --appendonly yes --bind 0.0.0.0
     ports:  
       - "16379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli","ping"]
+      interval: 10s
+      retries: 10
+      timeout: 5s
     networks: 
       app-network:
         ipv4_address: 172.40.20.12

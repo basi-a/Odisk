@@ -42,6 +42,6 @@ go build
 cp odisk dev-containers
 cd dev-containers 
 docker-compose up -d
-curl -f http://172.40.20.100:7000/ping
-curl -f http://172.40.20.100:9000/minio/health/live
+curl -I http://172.40.20.100:7000/ping
+curl -I http://172.40.20.100:9000/minio/health/live
 ```

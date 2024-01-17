@@ -21,8 +21,7 @@ func InitGorm()  {
 	maxRetryCount := 5
 	for retryCount := 0; retryCount < maxRetryCount; retryCount++{
 		dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local&timeout=%s", c.DBusername, c.DBpassword, c.DBhost, c.DBport, c.DBname, c.Timeout)
-		// log.Println(dsn)
-		
+	
 		DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
 			NamingStrategy: schema.NamingStrategy{
 				SingularTable: true,
@@ -38,7 +37,7 @@ func InitGorm()  {
 	sqlDB, _ := DB.DB()
 
 	//设置连接池参数
-	sqlDB.SetMaxOpenConns(2048)
+	sqlDB.SetMaxOpenConns(c.DBPoolConns)
 	sqlDB.SetConnMaxIdleTime(20)
 
 }

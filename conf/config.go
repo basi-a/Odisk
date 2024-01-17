@@ -19,6 +19,7 @@ type Conf struct {
 	RedisAddr		string	`yaml:"redisAddr"`
 	RedisPassword	string	`yaml:"redisPassword"`
 	RedisPort		string	`yaml:"redisPort"`
+	RedisPoolConns	int		`yaml:"redisPoolConns"`
 	
 	//mariadb config
 	DBusername		string	`yaml:"dbUsername"`
@@ -27,18 +28,13 @@ type Conf struct {
 	DBport			string	`yaml:"dbPort"`
 	DBname 			string	`yaml:"dbName"`
 	Timeout			string	`yaml:"timeout"`
+	DBPoolConns		int		`yaml:"dbPoolConns"`
 
 	//minio
 	Endpoint		string	`yaml:"endpoint"`
 	AccessKeyID		string	`yaml:"accessKeyID"`
 	SecretAccessKey string	`yaml:"secretAccessKey"`
 }
-
-// const (
-// 	path0="/etc/odisk/config.yaml"
-// 	path1="/usr/local/etc/odisk/config.yaml"
-// 	example="./conf/config-example.yaml"
-// )
 
 var Paths []string = []string{
 	 	"/etc/odisk/config.yaml",  

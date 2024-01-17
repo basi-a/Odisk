@@ -7,6 +7,7 @@ secret: "!QASEE%^TGFVB&"
 redisAddr: "127.0.0.1"
 redisPort: "16379"
 redisPassword: "TGVG8791HUBH"
+redisPoolConns: 2048
 
 # mariadb
 dbUsername: "odisk"
@@ -15,6 +16,7 @@ dbHost: "127.0.0.1"
 dbPort: "13306"
 dbName: "odisk"
 timeout: "10s"
+dbPoolConns: 2048
 
 # minio
 endpoint: "127.0.0.1:9000"

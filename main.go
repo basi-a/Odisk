@@ -2,7 +2,10 @@ package main
 
 import (
 	"log"
+	// "net/http"
 	"odisk/conf"
+	"odisk/initialize"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -17,19 +20,10 @@ func main()  {
 	gin.SetMode(runningMode)
 	r := gin.Default()
 	
-	r.GET("/ping", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "pong",
-		})
-	})
-	r.GET("/", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "helloworld",
-		})
-	})
+	
 	r.Run(c.Port) 
 }
 
 func init()  {
-	conf.InitGorm()
+	initialize.Initialize()
 }

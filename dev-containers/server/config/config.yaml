@@ -1,22 +1,24 @@
-# server
-mode: "release"
-port: ":7000"
-secret: "!QASEE%^TGFVB&"
+server:
+  mode: "release"
+  port: ":7000"
+  secret: "!QASEE%^TGFVB&"
+  trusted_proxies:
+    - "keepalived_haproxy1"
+    - "keepalived_haproxy2"
+redis:
+  redisAddr: "redis"
+  redisPort: "6379"
+  redisPassword: "TGVG8791HUBH"
 
-# redis
-redisAddr: "redis"
-redisPort: "6379"
-redisPassword: "TGVG8791HUBH"
+mariadb:
+  dbUsername: "odisk"
+  dbPassword: "FTVGBUY7uvib89Y"
+  dbHost: "mariadb"
+  dbPort: "3306"
+  dbName: "odisk"
+  timeout: "10s"
 
-# mariadb
-dbUsername: "odisk"
-dbPassword: "FTVGBUY7uvib89Y"
-dbHost: "mariadb"
-dbPort: "3306"
-dbName: "odisk"
-timeout: "10s"
-
-# minio
-endpoint: "keepalived_vip:9000"
-accessKeyID: "minioadmin" 
-secretAccessKey: "minioadmin"
+minio:
+  endpoint: "keepalived_vip:9000"
+  accessKeyID: "minioadmin" 
+  secretAccessKey: "minioadmin"

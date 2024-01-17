@@ -1,7 +1,11 @@
 package initialize
 
-import "odisk/conf"
+import(
+	g "odisk/global"
+) 
 func Initialize()  {
-	
-	conf.InitGorm()
+	g.InitConfig()
+	g.InitGorm()
+	g.InitRedis()
+	g.InitRouter()
 }

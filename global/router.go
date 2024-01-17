@@ -1,31 +1,24 @@
-package routers
+package global
 
 import (
-	"fmt"
-	"log"
 	"net/http"
 	"odisk/common"
-	"odisk/conf"
 
 	// "odisk/middleware"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/sessions"
-	"github.com/gin-contrib/sessions/redis"
 
 	"github.com/gin-gonic/gin"
 )
-
-func InitRouter() *gin.Engine {
+var RouterEngine *gin.Engine
+func InitRouter() {
+	trusted_proxies := Config.Server.TrustedProxies
 	r := gin.Default()
-	conf := new(conf.Conf)
-	c := conf.GetConfig()
+	// set trusted proxys
+	r.SetTrustedProxies(trusted_proxies)
 	
-	store, err := redis.NewStore(c.RedisPoolConns, "tcp", fmt.Sprintf("%s:%s",c.RedisAddr,c.RedisPort), c.RedisPassword, []byte(c.Secret))
-	if err != nil {
-		log.Fatalln(err)
-	}
-	r.Use(sessions.Sessions("session", store))
+	r.Use(sessions.Sessions("session", Store))
 	r.Use(cors.Default())
 
 	r.Any("/ping", func(c *gin.Context) {
@@ -46,5 +39,5 @@ func InitRouter() *gin.Engine {
 		
 	// }
 
-	return r
+	RouterEngine = r
 }

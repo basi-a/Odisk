@@ -1,24 +1,26 @@
-# server
-mode: "debug"
-port: ":9999"
-secret: "!QASEE%^TGFVB&"
+server:
+  mode: "debug"
+  port: ":9999"
+  secret: "!QASEE%^TGFVB&"
+  trusted_proxies:
+    - "172.40.20.14"
+    - "172.40.20.15"
+redis:
+  redisAddr: "127.0.0.1"
+  redisPort: "16379"
+  redisPassword: "TGVG8791HUBH"
+  redisPoolConns: 2048
 
-# redis
-redisAddr: "127.0.0.1"
-redisPort: "16379"
-redisPassword: "TGVG8791HUBH"
-redisPoolConns: 2048
+mariadb:
+  dbUsername: "odisk"
+  dbPassword: "FTVGBUY7uvib89Y"
+  dbHost: "127.0.0.1"
+  dbPort: "13306"
+  dbName: "odisk"
+  timeout: "10s"
+  dbPoolConns: 2048
 
-# mariadb
-dbUsername: "odisk"
-dbPassword: "FTVGBUY7uvib89Y"
-dbHost: "127.0.0.1"
-dbPort: "13306"
-dbName: "odisk"
-timeout: "10s"
-dbPoolConns: 2048
-
-# minio
-endpoint: "127.0.0.1:9000"
-accessKeyID: "minioadmin" 
-secretAccessKey: "minioadmin"
+minio:
+  endpoint: "127.0.0.1:9000"
+  accessKeyID: "minioadmin" 
+  secretAccessKey: "minioadmin"

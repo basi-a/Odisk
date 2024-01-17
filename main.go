@@ -3,27 +3,34 @@ package main
 import (
 	"log"
 	// "net/http"
-	"odisk/conf"
 	"odisk/initialize"
+	g "odisk/global"
 
 	"github.com/gin-gonic/gin"
 )
 
 func main()  {
-	conf := new(conf.Conf)
-	c := conf.GetConfig()
-	log.Println("running mode", c.Mode)
-	runningMode := gin.ReleaseMode
-	if c.Mode != "release" {
-		runningMode = gin.DebugMode
-	}
-	gin.SetMode(runningMode)
-	r := gin.Default()
 	
-	
-	r.Run(c.Port) 
+	port := g.Config.Server.Port
+	setMode()
+	r := g.RouterEngine
+	r.Run(port) 
 }
 
 func init()  {
 	initialize.Initialize()
+}
+
+func setMode() {
+		mode := g.Config.Server.Mode
+		
+        //设置运行模式
+        switch mode {
+        case "debug":
+                gin.SetMode(gin.DebugMode)
+        case "release":
+                gin.SetMode(gin.ReleaseMode)
+        default:
+                log.Fatalln("Your run mode is set to", mode, ". Must be debug or release!!!!")
+        }
 }

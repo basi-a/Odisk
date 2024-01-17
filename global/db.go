@@ -1,4 +1,4 @@
-package conf
+package global
 
 import (
 	"fmt"
@@ -14,13 +14,18 @@ import (
 var DB *gorm.DB
 
 func InitGorm()  {
-	conf := new(Conf)
-	c := conf.GetConfig()
+	username := Config.Mariadb.DBusername
+	password := Config.Mariadb.DBpassword
+	host := Config.Mariadb.DBhost
+	port := Config.Mariadb.DBport
+	name := Config.Mariadb.DBname
+	timeout := Config.Mariadb.Timeout
+	poolConns := Config.Mariadb.DBPoolConns
 	// log.Println(c)
 	var err error
 	maxRetryCount := 5
 	for retryCount := 0; retryCount < maxRetryCount; retryCount++{
-		dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local&timeout=%s", c.DBusername, c.DBpassword, c.DBhost, c.DBport, c.DBname, c.Timeout)
+		dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local&timeout=%s", username, password, host, port, name, timeout)
 	
 		DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
 			NamingStrategy: schema.NamingStrategy{
@@ -37,7 +42,7 @@ func InitGorm()  {
 	sqlDB, _ := DB.DB()
 
 	//设置连接池参数
-	sqlDB.SetMaxOpenConns(c.DBPoolConns)
+	sqlDB.SetMaxOpenConns(poolConns)
 	sqlDB.SetConnMaxIdleTime(20)
 
 }

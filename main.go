@@ -14,6 +14,7 @@ func main()  {
 	port := g.Config.Server.Port
 	setMode()
 	r := g.RouterEngine
+	
 	r.Run(port) 
 }
 

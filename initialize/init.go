@@ -7,5 +7,6 @@ func Initialize()  {
 	g.InitConfig()
 	g.InitGorm()
 	g.InitRedis()
+	g.InitMinio()
 	g.InitRouter()
 }

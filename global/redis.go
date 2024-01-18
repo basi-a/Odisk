@@ -18,6 +18,6 @@ func InitRedis()  {
 	var err error
 	Store, err = redis.NewStore(poolConns, "tcp", fmt.Sprintf("%s:%s",addr,port), passowrd, []byte(selectstr))
 	if err != nil {
-		log.Fatalln(err)
+		log.Fatalln("redis error:",err)
 	}
 }

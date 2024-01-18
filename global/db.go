@@ -3,6 +3,8 @@ package global
 import (
 	"fmt"
 	"log"
+	"time"
+
 	// "log"
 
 	"gorm.io/driver/mysql" // mysql 数据库驱动
@@ -21,6 +23,7 @@ func InitGorm()  {
 	name := Config.Mariadb.DBname
 	timeout := Config.Mariadb.Timeout
 	poolConns := Config.Mariadb.DBPoolConns
+	log.Println(host+":"+port)
 	// log.Println(c)
 	var err error
 	maxRetryCount := 5
@@ -34,7 +37,10 @@ func InitGorm()  {
 		})
 		if err == nil {
 			break
+		}else {
+			log.Println("mariadb error:",err)
 		}
+		time.Sleep(time.Second*20)
 	}
 	if err != nil {
 		log.Fatalf("Failed to connect database after %d attempts\n", maxRetryCount)

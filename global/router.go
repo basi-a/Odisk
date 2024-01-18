@@ -1,6 +1,7 @@
 package global
 
 import (
+	"log"
 	"net/http"
 	"odisk/common"
 
@@ -16,8 +17,10 @@ func InitRouter() {
 	trusted_proxies := Config.Server.TrustedProxies
 	r := gin.Default()
 	// set trusted proxys
-	r.SetTrustedProxies(trusted_proxies)
-	
+	err := r.SetTrustedProxies(trusted_proxies)
+	if err != nil {
+		log.Println("SetTrustedProxies error:",err)
+	}
 	r.Use(sessions.Sessions("session", Store))
 	r.Use(cors.Default())
 

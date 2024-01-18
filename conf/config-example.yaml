@@ -21,6 +21,9 @@ mariadb:
   dbPoolConns: 2048
 
 minio:
-  endpoint: "127.0.0.1:9000"
+  endpoint: "172.40.20.100:9000"
   accessKeyID: "minioadmin" 
   secretAccessKey: "minioadmin"
+  usessl: false
+  bucketName: "odisk"
+  location: "zh-private-1"

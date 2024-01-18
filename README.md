@@ -4,7 +4,7 @@
 - [x] 脚手架
 - [x] GORM
 - [X] GIN
-- [X] MinIO
+- [ ] MinIO
 - [ ] 数据库设计
 - [ ] VUE
 - [ ] 前端开发
@@ -37,11 +37,5 @@ x-hosts-common: &hosts-common
 ```bash
 git clone https://github.com/basi-a/odisk
 cd odisk
-go mod tidy
-go build
-cp odisk dev-containers
-cd dev-containers 
-docker-compose up -d
-curl -I http://172.40.20.100:7000/ping
-curl -I http://172.40.20.100:9000/minio/health/live
+./quick-fun.sh
 ```

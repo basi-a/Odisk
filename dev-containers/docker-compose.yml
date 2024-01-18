@@ -7,8 +7,8 @@ x-hosts-common: &hosts-common
       - "adminer:172.40.20.11"
       - "redis:172.40.20.12"
       - "nginx:172.40.20.13"
-      - "keepalived_haproxy1:172.40.20.14"
-      - "keepalived_haproxy2:172.40.20.15"
+      - "keepalived.haproxy1:172.40.20.14"
+      - "keepalived.haproxy2:172.40.20.15"
       - "minio1:172.40.20.16"
       - "minio2:172.40.20.17"
       - "minio3:172.40.20.18"
@@ -17,7 +17,7 @@ x-hosts-common: &hosts-common
       - "server2:172.40.20.21"
       - "server3:172.40.20.22"
       - "server4:172.40.20.23"
-      - "keepalived_vip:172.40.20.100"
+      - "keepalived.vip:172.40.20.100"
 
 x-minio-common: &minio-common
   <<: *hosts-common
@@ -29,6 +29,7 @@ x-minio-common: &minio-common
   environment:
     MINIO_ROOT_USER: minioadmin
     MINIO_ROOT_PASSWORD: minioadmin
+    MINIO_REGION_NAME: zh-private-1
   healthcheck:
     test: ["CMD", "mc", "ready", "local"]
     interval: 10s
@@ -48,14 +49,14 @@ x-keepalived-haproxy-common: &keepalived-haproxy-common
       condition: service_healthy
     minio4:
       condition: service_healthy
-    server1:
-      condition: service_healthy
-    server2:
-      condition: service_healthy
-    server3:
-      condition: service_healthy
-    server4:
-      condition: service_healthy
+    # server1:
+    #   condition: service_healthy
+    # server2:
+    #   condition: service_healthy
+    # server3:
+    #   condition: service_healthy
+    # server4:
+    #   condition: service_healthy
 
   command: /sbin/init
   privileged: true  
@@ -109,9 +110,9 @@ services:
       MYSQL_COLLATION: 'utf8mb4_general_ci'
       MYSQL_HOST: '%'
     healthcheck:
-      test: ["CMD", "/usr/local/bin/healthcheck.sh", "--su-mysql", "--connect"]
-      interval: 10s
-      retries: 10
+      test: ["CMD", "/usr/local/bin/healthcheck.sh", "--connect"]
+      interval: 5s
+      retries: 5
       timeout: 5s
     networks: 
       app-network:

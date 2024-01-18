@@ -9,6 +9,7 @@ redis:
   redisAddr: "redis"
   redisPort: "6379"
   redisPassword: "TGVG8791HUBH"
+  redisPoolConns: 100
 
 mariadb:
   dbUsername: "odisk"
@@ -17,8 +18,12 @@ mariadb:
   dbPort: "3306"
   dbName: "odisk"
   timeout: "10s"
+  dbPoolConns: 100
 
 minio:
-  endpoint: "keepalived_vip:9000"
+  endpoint: "keepalived.vip:9000"
   accessKeyID: "minioadmin" 
   secretAccessKey: "minioadmin"
+  usessl: false
+  bucketName: "odisk"
+  location: "zh-private-1"

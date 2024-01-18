@@ -4,7 +4,8 @@
 - [x] 脚手架
 - [x] GORM
 - [X] GIN
-- [ ] MinIO
+- [x] MinIO
+- [ ] 日志收集
 - [ ] 数据库设计
 - [ ] VUE
 - [ ] 前端开发
@@ -33,9 +34,11 @@ x-hosts-common: &hosts-common
       - "keepalived.vip:172.40.20.100"
 ```
 # 接口文档
+[Apifox 文档分享 ](https://apifox.com/apidoc/shared-60f72b42-a39e-4e18-85b5-a0c4e84e415d)
 # 食用方式
 ```bash
 git clone https://github.com/basi-a/odisk
 cd odisk
+go mod tidy
 ./quick-fun.sh
 ```

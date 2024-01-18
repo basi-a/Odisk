@@ -23,8 +23,7 @@ func InitGorm()  {
 	name := Config.Mariadb.DBname
 	timeout := Config.Mariadb.Timeout
 	poolConns := Config.Mariadb.DBPoolConns
-	log.Println(host+":"+port)
-	// log.Println(c)
+
 	var err error
 	maxRetryCount := 5
 	for retryCount := 0; retryCount < maxRetryCount; retryCount++{

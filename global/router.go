@@ -16,11 +16,14 @@ import (
 var RouterEngine *gin.Engine
 func InitRouter() {
 	trusted_proxies := Config.Server.TrustedProxies
+	mode := Config.Server.Mode
 	r := gin.Default()
+	setMode(mode)
+	if mode == "debug" {
+		// default is "debug/pprof"
+		pprof.Register(r)
+	}
 
-	// default is "debug/pprof"
-	pprof.Register(r)
-	
 	// set trusted proxys
 	err := r.SetTrustedProxies(trusted_proxies)
 	if err != nil {
@@ -30,38 +33,47 @@ func InitRouter() {
 	// Resolve cross-domain
 	r.Use(cors.Default())
 
-	// r.Any("/ping", func(c *gin.Context) {
-	// 	if c.Request.Method == http.MethodHead || c.Request.Method == http.MethodGet {
-	// 		// 返回 200 OK
-	// 		c.String(http.StatusOK, "pong\n")
-	// 	} else {
-	// 		// 对于其他请求方法，返回 405 Method Not Allowed
-	// 		c.Status(http.StatusMethodNotAllowed)
-	// 	}
-	// })
 
 	pingGroup := r.Group("/ping")
-	{
+	{	
+		
 		// 使用路由组处理 HEAD 和 GET 请求
 		pingGroup.HEAD("/", func(c *gin.Context) {
 			c.String(http.StatusOK, "pong\n")
 		})
-
 		pingGroup.GET("/", func(c *gin.Context) {
 			c.String(http.StatusOK, "pong\n")
 		})
 	}
 
-	
-	
-	r.GET("/hello", func(c *gin.Context) {
-		common.Success(c, "helloworld", nil)
-	})
-
-	// auth := r.Group("/", middleware.SessionMiddleware())
-	// {
+	v1 := r.Group("/v1")
+	{
 		
-	// }
 
+		v1.GET("/hello", func(c *gin.Context) {
+			common.Success(c, "helloworld", nil)
+		})
+
+		// auth := v1.Group("/", middleware.SessionMiddleware())
+		// {
+
+		// }
+
+	}
+	
 	RouterEngine = r
+}
+
+
+func setMode(mode string) {
+		
+        //设置运行模式
+        switch mode {
+        case "debug":
+                gin.SetMode(gin.DebugMode)
+        case "release":
+                gin.SetMode(gin.ReleaseMode)
+        default:
+                log.Fatalln("Your run mode is set to", mode, ". Must be debug or release!!!!")
+        }
 }

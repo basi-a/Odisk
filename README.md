@@ -20,8 +20,8 @@ x-hosts-common: &hosts-common
       - "adminer:172.40.20.11"
       - "redis:172.40.20.12"
       - "nginx:172.40.20.13"
-      - "keepalived_haproxy1:172.40.20.14"
-      - "keepalived_haproxy2:172.40.20.15"
+      - "keepalived.haproxy1:172.40.20.14"
+      - "keepalived.haproxy2:172.40.20.15"
       - "minio1:172.40.20.16"
       - "minio2:172.40.20.17"
       - "minio3:172.40.20.18"
@@ -30,7 +30,7 @@ x-hosts-common: &hosts-common
       - "server2:172.40.20.21"
       - "server3:172.40.20.22"
       - "server4:172.40.20.23"
-      - "keepalived_vip:172.40.20.100"
+      - "keepalived.vip:172.40.20.100"
 ```
 # 接口文档
 # 食用方式

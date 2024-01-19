@@ -17,8 +17,9 @@ var RouterEngine *gin.Engine
 func InitRouter() {
 	trusted_proxies := Config.Server.TrustedProxies
 	mode := Config.Server.Mode
-	r := gin.Default()
 	setMode(mode)
+	
+	r := gin.Default()
 	if mode == "debug" {
 		// default is "debug/pprof"
 		pprof.Register(r)
@@ -34,22 +35,20 @@ func InitRouter() {
 	r.Use(cors.Default())
 
 
-	pingGroup := r.Group("/ping")
+	pingGroup := r.Group("/")
 	{	
 		
 		// 使用路由组处理 HEAD 和 GET 请求
-		pingGroup.HEAD("/", func(c *gin.Context) {
+		pingGroup.HEAD("/ping", func(c *gin.Context) {
 			c.String(http.StatusOK, "pong\n")
 		})
-		pingGroup.GET("/", func(c *gin.Context) {
+		pingGroup.GET("/ping", func(c *gin.Context) {
 			c.String(http.StatusOK, "pong\n")
 		})
 	}
 
 	v1 := r.Group("/v1")
 	{
-		
-
 		v1.GET("/hello", func(c *gin.Context) {
 			common.Success(c, "helloworld", nil)
 		})

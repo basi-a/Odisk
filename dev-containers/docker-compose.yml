@@ -73,7 +73,7 @@ x-server-common: &server-common
   command: /opt/odisk
   healthcheck:
     test: ["CMD", "curl", "-f", "http://localhost:7000/ping"]
-    interval: 10s
+    interval: 1m
     retries: 10
     timeout: 5s
   depends_on:

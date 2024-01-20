@@ -3,6 +3,7 @@ package initialize
 import(
 	g "odisk/global"
 	m "odisk/model"
+	r "odisk/router"
 ) 
 func Initialize()  {
 	g.InitConfig()
@@ -10,5 +11,5 @@ func Initialize()  {
 	m.InitModel()
 	g.InitRedis()
 	g.InitMinio()
-	g.InitRouter()
+	r.InitRouter()
 }

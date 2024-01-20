@@ -1,6 +1,7 @@
 package model
 
 import (
+	"log"
 	g "odisk/global"
 
 	"golang.org/x/crypto/bcrypt"
@@ -8,7 +9,7 @@ import (
 )
 type Users struct {
 	gorm.Model
-	Name  		string	`json:"name"`
+	UserName  		string	`json:"username"`
 	Password	string	
 	Email		string  `json:"email" gorm:"uniqueIndex"`
 }
@@ -17,7 +18,7 @@ func InitUser()  {
 	g.DB.AutoMigrate(Users{})
 }
 // add a user with name password email
-func AddUser(name, password, email string)  error  {
+func (users *Users )AddUser(username, password, email string)  error  {
 	db := g.DB
 
 	hashedPassword, err := hashPassword(password)
@@ -25,18 +26,18 @@ func AddUser(name, password, email string)  error  {
 		return err
 	}
 	user := Users{
-		Name: name,
+		UserName: username,
 		Password: string(hashedPassword),
 		Email: email,
 	}
 	err = db.Create(&user).Error
 	if err != nil {
-    return err
+    	return err	
 	}
 	return nil
 }
 // del a user by email  
-func DelUser(email  string) error {
+func (users *Users )DelUser(email  string) error {
 	db := g.DB
 
 	err := db.Delete(&Users{}, email).Error
@@ -47,7 +48,7 @@ func DelUser(email  string) error {
 }
 
 // update user by email with name password and email
-func UpdateUser(name, password, email string) error {
+func (users *Users )UpdateUser(username, password, email string) error {
 	db := g.DB
 	var err error
 	if password != "" {
@@ -57,7 +58,7 @@ func UpdateUser(name, password, email string) error {
 		}
 	}
 	user := Users{
-		Name:     name,
+		UserName: username,
 		Password: password,
 		Email:    email,
 	}
@@ -69,19 +70,19 @@ func UpdateUser(name, password, email string) error {
 }
 
 // list all users
-func ListUser() ([]Users, error) {
+func (users *Users )ListUser() ([]Users, error) {
 	db := g.DB
 
-	var users []Users
-	err := db.Find(&users).Error
+	var usersList []Users
+	err := db.Find(&usersList).Error
 	if err != nil {
 		return nil, err
 	}
-	return users, nil
+	return usersList, nil
 }
 
 // get a user by email
-func GetUser(email string) (*Users, error) {
+func (users *Users )GetUser(email string) (*Users, error) {
 	db := g.DB
 
 	var user Users
@@ -99,4 +100,16 @@ func hashPassword(password string) (string, error) {
 	}
 
 	return string(hashedPassword), nil
+}
+
+func (user *Users)VerifyAccount(email, password string) bool  {
+	db := g.DB
+	if err := db.Select("password").Where("email=?", email).Find(&user).Error; err != nil {
+		log.Println("Verify Account error:", err)
+		return false
+	}else  if err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil{
+		log.Println("Verify Account error:", err)
+		return false
+	}
+	return true
 }

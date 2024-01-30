@@ -5,8 +5,6 @@ import (
 	"odisk/common"
 	m "odisk/model"
 	u "odisk/utils"
-
-	// "github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 )
 
@@ -46,10 +44,19 @@ func Login(c *gin.Context)  {
 	password := c.PostForm("password")
 
 	user := m.Users{}
-	if user.VerifyAccount(email, password) {
-		
+	ok, err := user.VerifyAccount(email, password)
+	if err != nil {
+		common.Error(c, err.Error())
 	}
-	
+	if ok && err == nil {
+		userInfo := m.Info{}
+		err := userInfo.GetInfo(email)
+		if err != nil {
+			common.Error(c, err.Error())
+		}
+		SaveSession(c, userInfo)
+		common.Success(c, fmt.Sprintf("Welcome %s", email), nil)
+	}
 }
 
 // GET /v1/users  auth 组

@@ -1,7 +1,7 @@
 package model
 
 import (
-	"log"
+	// "log"
 	g "odisk/global"
 
 	"golang.org/x/crypto/bcrypt"
@@ -9,7 +9,7 @@ import (
 )
 type Users struct {
 	gorm.Model
-	UserName  		string	`json:"username"`
+	UserName  	string	`json:"username"`
 	Password	string	
 	Email		string  `json:"email" gorm:"uniqueIndex"`
 }
@@ -102,14 +102,13 @@ func hashPassword(password string) (string, error) {
 	return string(hashedPassword), nil
 }
 
-func (user *Users)VerifyAccount(email, password string) bool  {
+func (user *Users)VerifyAccount(email, password string) (ok bool, err error ) {
 	db := g.DB
-	if err := db.Select("password").Where("email=?", email).Find(&user).Error; err != nil {
-		log.Println("Verify Account error:", err)
-		return false
+	ok = true
+	if err = db.Select("password").Where("email=?", email).Find(&user).Error; err != nil {
+		return !ok, err
 	}else  if err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil{
-		log.Println("Verify Account error:", err)
-		return false
+		return !ok, err
 	}
-	return true
+	return ok, nil
 }

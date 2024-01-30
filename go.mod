@@ -2,7 +2,10 @@ module odisk
 
 go 1.21.3
 
-require github.com/spf13/viper v1.17.0
+require (
+	github.com/spf13/viper v1.17.0
+	golang.org/x/crypto v0.14.0
+)
 
 require (
 	github.com/boj/redistore v0.0.0-20180917114910-cd5dcc76aeff // indirect
@@ -33,7 +36,6 @@ require (
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.11 // indirect
 	golang.org/x/arch v0.5.0 // indirect
-	golang.org/x/crypto v0.14.0 // indirect
 	golang.org/x/net v0.16.0 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
 )

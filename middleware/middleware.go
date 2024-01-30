@@ -10,7 +10,7 @@ import (
 func SessionMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		session := sessions.Default(c)
-		if session.Get("username") == nil {
+		if session.Get("userInfo") == nil {
 			c.Abort()
 			c.JSON(http.StatusOK, "No permissions, please log in.")
 		} else {

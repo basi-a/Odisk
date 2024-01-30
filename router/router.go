@@ -3,7 +3,6 @@ package router
 import (
 	"log"
 	"net/http"
-	"odisk/common"
 	"odisk/controller"
 	g "odisk/global"
 	"odisk/middleware"
@@ -50,10 +49,6 @@ func InitRouter() {
 
 	v1 := r.Group("/v1")
 	{
-		v1.GET("/hello", func(c *gin.Context) {
-			common.Success(c, "helloworld", nil)
-		})
-
 		v1.POST("/register", controller.RegisterUser)
 		v1.POST("/login", controller.Login)
 
@@ -66,6 +61,13 @@ func InitRouter() {
 				userGroup.POST("/update", controller.UpdateUser)
 				userGroup.POST("/delate", controller.DelUser)
 			}
+
+			sessionGroup := authedGroup.Group("/")
+			{	
+				sessionGroup.GET("/userInfo", controller.ReadSession)
+				sessionGroup.GET("/logout", controller.Logout)
+			}
+
 		}
 
 	}

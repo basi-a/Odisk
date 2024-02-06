@@ -6,4 +6,3 @@ docker compose up -d
 cd ..
 sleep 30
 curl -I http://172.40.20.100:7000/ping
-curl http://172.40.20.100:7000/v1/hello

@@ -6,7 +6,7 @@ import (
 	// "gorm.io/gorm"
 )
 
-type Storage struct {
+type StorageInformation struct {
 	Id			int
 	FileName	string
 	Uri			string

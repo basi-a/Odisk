@@ -16,20 +16,20 @@ func RegisterUser(c *gin.Context){
 	maxUsernameLength := 20
 	// 检查用户名长度
     if  len(username) > maxUsernameLength {
-        common.Error(c, fmt.Sprintf("用户名长度必须在%d以内", maxUsernameLength))
+        common.Error(c, fmt.Sprintf("用户名长度必须在%d以内", maxUsernameLength), nil)
         return
     }
 
     // 检查邮箱格式
     if !u.IsValidEmail(email) {
-        common.Error(c, "邮箱格式不正确")
+        common.Error(c, "邮箱格式不正确", nil)
         return
     }
 	user := m.Users{}
 	if username != "" && password != "" && email != "" {
 		err := user.AddUser(username, password, email)
 		if err != nil {
-			common.Error(c, "注册失败, 请检查是否邮箱已使用, 或输入有误")
+			common.Error(c, "注册失败, 请检查是否邮箱已使用, 或输入有误", err)
 		}else{
 			common.Success(c, fmt.Sprintf("注册成功, 用户名: %s", username),nil)
 		}
@@ -46,13 +46,13 @@ func Login(c *gin.Context)  {
 	user := m.Users{}
 	ok, err := user.VerifyAccount(email, password)
 	if err != nil {
-		common.Error(c, err.Error())
+		common.Error(c, "认证失败", err)
 	}
 	if ok && err == nil {
 		userInfo := m.Info{}
 		err := userInfo.GetInfo(email)
 		if err != nil {
-			common.Error(c, err.Error())
+			common.Error(c, "获取信息失败", err)
 		}
 		SaveSession(c, userInfo)
 		common.Success(c, fmt.Sprintf("Welcome %s", email), nil)

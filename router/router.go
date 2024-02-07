@@ -68,6 +68,16 @@ func InitRouter() {
 				sessionGroup.GET("/logout", controller.Logout)
 			}
 
+			objectGroup := v1.Group("/object")
+			{
+				objectGroup.POST("/upload", controller.UploadFile)
+				objectGroup.GET("/download", controller.DownloadFile)
+				objectGroup.DELETE("/delate", controller.DelFile)
+				objectGroup.POST("/rename", controller.RenameFile)
+				objectGroup.POST("/move", controller.MoveFile)
+				objectGroup.GET("/list", controller.FileList) 
+			}
+
 		}
 
 	}

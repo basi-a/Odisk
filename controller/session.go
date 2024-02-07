@@ -31,7 +31,7 @@ func ReadSession(c *gin.Context)  {
 	if userInfo.Email != ""{
 		common.Success(c, "获取成功", userInfo.UserName)
 	}else{
-		common.Error(c, "获取信息失败")
+		common.Error(c, "获取信息失败", nil)
 	}
 }
 

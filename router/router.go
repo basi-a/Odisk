@@ -68,14 +68,21 @@ func InitRouter() {
 				sessionGroup.GET("/logout", controller.Logout)
 			}
 
-			objectGroup := v1.Group("/object")
+			s3Group := v1.Group("/s3")
 			{
-				objectGroup.POST("/upload", controller.UploadFile)
-				objectGroup.GET("/download", controller.DownloadFile)
-				objectGroup.DELETE("/delate", controller.DelFile)
-				objectGroup.POST("/rename", controller.RenameFile)
-				objectGroup.POST("/move", controller.MoveFile)
-				objectGroup.GET("/list", controller.FileList) 
+				uploadGroup := s3Group.Group("/upload")
+				{
+					uploadGroup.POST("/small", controller.UploadFile)
+					uploadGroup.POST("/big/create", controller.MultipartUploadCreate)
+					uploadGroup.POST("/big/finish", controller.MultipartUploadFinish)
+					uploadGroup.POST("/abort", controller.MultipartUploadAbort)
+					uploadGroup.GET("/tasklist", controller.UploadTaskList)
+				}
+				s3Group.GET("/download", controller.DownloadFile)
+				s3Group.DELETE("/delate", controller.DelFile)
+				s3Group.POST("/rename", controller.RenameFile)
+				s3Group.POST("/move", controller.MoveFile)
+				s3Group.GET("/list", controller.FileList) 
 			}
 
 		}

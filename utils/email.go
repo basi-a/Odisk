@@ -1,7 +1,7 @@
 package utils
 
 import (
-
+	"encoding/base64"
 	"regexp"
 )
 
@@ -12,3 +12,11 @@ func IsValidEmail(email string) bool {
     return emailRegex.MatchString(email)
 }
 
+// base64解编码
+func DecodeRawData(encodedRawData string) (string, error){
+	decodedstr, err := base64.StdEncoding.DecodeString(encodedRawData)
+	if err != nil {
+		return "", err
+	}
+	return string(decodedstr), nil
+}

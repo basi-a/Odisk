@@ -40,6 +40,7 @@ x-keepalived-haproxy-common: &keepalived-haproxy-common
   <<: *hosts-common
   build:
     context: ./haproxy-keepalived/.
+  image: odisk/keepalived-haproxy:latest
   depends_on: 
     minio1:
       condition: service_healthy
@@ -65,6 +66,7 @@ x-server-common: &server-common
   <<: *hosts-common
   build:
     context: ./server/.
+  image: odisk/server:latest
   volumes:
     - ./server/config/config.yaml:/etc/odisk/config.yaml
     - ./log/odisk:/var/log/odisk
@@ -127,7 +129,8 @@ services:
     ports:
       - "28080:8080"
     depends_on:
-      - mariadb
+      mariadb:
+        condition: service_healthy
     networks: 
       app-network:
         ipv4_address: 172.40.20.11

@@ -31,7 +31,7 @@ func RegisterUser(c *gin.Context){
 		if err != nil {
 			common.Error(c, "注册失败, 请检查是否邮箱已使用, 或输入有误", err)
 		}else{
-			common.Success(c, fmt.Sprintf("注册成功, 用户名: %s", username),nil)
+			common.Success(c, fmt.Sprintf("注册成功, 用户名: %s", username))
 		}
 	}
 }
@@ -49,13 +49,14 @@ func Login(c *gin.Context)  {
 		common.Error(c, "认证失败", err)
 	}
 	if ok && err == nil {
-		userInfo := m.Info{}
-		err := userInfo.GetInfo(email)
+		userInfo, err := m.GetUserInfo(email)
 		if err != nil {
 			common.Error(c, "获取信息失败", err)
+		}else{
+			SaveSession(c, userInfo)
+			common.Success(c, fmt.Sprintf("Welcome %s", email))
 		}
-		SaveSession(c, userInfo)
-		common.Success(c, fmt.Sprintf("Welcome %s", email), nil)
+		
 	}
 }
 

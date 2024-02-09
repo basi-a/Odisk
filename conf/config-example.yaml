@@ -3,8 +3,8 @@ server:
   port: ":9999"
   secret: "!QASEE%^TGFVB&"
   trusted_proxies:
-    - "172.40.20.14"
-    - "172.40.20.15"
+    - "172.40.20.14" # HAproxy A
+    - "172.40.20.15" # HAproxy B
 redis:
   redisAddr: "127.0.0.1"
   redisPort: "16379"

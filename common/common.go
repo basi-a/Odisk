@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func Success(c *gin.Context, msg string, data interface{}) {
+func Success(c *gin.Context, msg string, data ...interface{}) {
 	c.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
 		"msg":  msg,

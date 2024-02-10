@@ -5,6 +5,13 @@ server:
   trusted_proxies:
     - "172.40.20.14" # HAproxy A
     - "172.40.20.15" # HAproxy B
+  mail:
+    sender-mail: "basi1024@163.com"
+    smtp-server: "smtp.example.com"
+    port: 25
+    username: "basi1024@163.com"
+    password: ""
+    
 redis:
   redisAddr: "127.0.0.1"
   redisPort: "16379"

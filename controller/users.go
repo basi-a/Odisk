@@ -60,6 +60,12 @@ func Login(c *gin.Context)  {
 	}
 }
 
+// POST /v1/emailVerify
+// func EmailVerifyCode(c *gin.Context)   {
+// 	email := c.PostForm("email")
+
+// }
+
 // GET /v1/users  auth 组
 func ListUsers(c *gin.Context)  {
 	

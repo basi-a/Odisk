@@ -15,7 +15,16 @@ type ServerConfig struct {
 	//secret
 	Secret 			string		`yaml:"secret"`
 	TrustedProxies 	[]string 	`yaml:"trusted_proxies"`
+	Mail			MailConfig  `yaml:"mail"`
 }
+type MailConfig struct {
+	SerderMail		string		`yaml:"sender-mail"`
+	SmtpServer		string		`yaml:"smtp-server"`
+	Port			int			`yaml:"port"`
+	UserName		string		`yaml:"username"`
+	Password 		string      `yaml:"password"`
+}
+
 //redis config
 type RedisConfig struct {
 	RedisAddr		string	`yaml:"redisAddr"`

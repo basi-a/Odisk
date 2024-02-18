@@ -50,14 +50,7 @@ x-keepalived-haproxy-common: &keepalived-haproxy-common
       condition: service_healthy
     minio4:
       condition: service_healthy
-    # server1:
-    #   condition: service_healthy
-    # server2:
-    #   condition: service_healthy
-    # server3:
-    #   condition: service_healthy
-    # server4:
-    #   condition: service_healthy
+
   command: /sbin/init
   privileged: true  
 
@@ -158,15 +151,26 @@ services:
     hostname: nginx
     container_name: odisk_nginx
     ports:
-      - "8080:80"
+      - "80:80"
+      - "443:443"
     volumes:
-      - ./static:/usr/share/nginx/html:ro
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/odisk-font.conf:/etc/nginx/conf.d/odisk-font.conf
+      - ./nginx/dist:/opt/dist
+      - ./nginx/cert:/opt/cert
+
+    command: ["/bin/bash", "-c", "chown -R nginx:nginx /opt/dist /opt/cert && nginx -g 'daemon off;'"]
     restart: always
     depends_on:
       - mariadb 
       - redis
       - keepalived_haproxy1
       - keepalived_haproxy2
+    healthcheck:
+      test: ["CMD", "curl", "-k", "-f", "https://localhost"]
+      interval: 10s
+      retries: 10
+      timeout: 5s
     networks: 
       app-network:
         ipv4_address: 172.40.20.13

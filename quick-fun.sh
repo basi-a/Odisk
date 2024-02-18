@@ -3,6 +3,7 @@ go build
 cp odisk dev-containers/server
 cp -r cert dev-containers/server
 cp -r cert dev-containers/haproxy-keepalived
+cp -r cert dev-containers/nginx
 cd dev-containers || exit
 docker compose up -d
 cd ..

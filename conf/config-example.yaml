@@ -2,6 +2,9 @@ server:
   mode: "debug"
   port: ":9999"
   secret: "!QASEE%^TGFVB&"
+  ssl:
+    privatekey: "/home/yang/Documents/mypaper/odisk/cert/server.key"
+    cert: "/home/yang/Documents/mypaper/odisk/cert/server.crt"
   trusted_proxies:
     - "172.40.20.14" # HAproxy A
     - "172.40.20.15" # HAproxy B
@@ -10,7 +13,7 @@ server:
     smtp-server: "smtp.example.com"
     port: 25
     username: "basi1024@163.com"
-    password: ""
+    password: "asgasga"
     
 redis:
   redisAddr: "127.0.0.1"
@@ -28,7 +31,7 @@ mariadb:
   dbPoolConns: 2048
 
 minio:
-  endpoint: "172.40.20.100:9000"
+  endpoint: "172.40.20.16:9000"
   accessKeyID: "minioadmin" 
   secretAccessKey: "minioadmin"
   usessl: false

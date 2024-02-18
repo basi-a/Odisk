@@ -1,10 +1,19 @@
 server:
   mode: "release"
   port: ":7000"
-  secret: "!QASEE%^TGFVB&"
+  secret: "!QASEE%^TGFVB&"  
+  ssl:
+    privatekey: "/opt/cert/server.key"
+    cert: "/opt/cert/server.crt"
   trusted_proxies:
     - "keepalived_haproxy1"
     - "keepalived_haproxy2"
+  mail:
+    sender-mail: "basi1024@163.com"
+    smtp-server: "smtp.example.com"
+    port: 25
+    username: "basi1024@163.com"
+    password: "asgasga"
 redis:
   redisAddr: "redis"
   redisPort: "6379"

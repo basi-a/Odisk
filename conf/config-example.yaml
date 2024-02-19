@@ -3,11 +3,18 @@ server:
   port: ":9999"
   secret: "!QASEE%^TGFVB&"
   ssl:
-    privatekey: "/home/yang/Documents/mypaper/odisk/cert/server.key"
-    cert: "/home/yang/Documents/mypaper/odisk/cert/server.crt"
+    privatekey: "cert/server.key"
+    cert: "cert/server.crt"
   trusted_proxies:
     - "172.40.20.14" # HAproxy A
     - "172.40.20.15" # HAproxy B
+  cros: 
+    allowOrigins:
+      - "https://127.0.0.1"
+      - "https://localhost"
+      - "https://xxxx.example.xyz"
+    allowCredentials: true
+    
   mail:
     sender-mail: "basi1024@163.com"
     smtp-server: "smtp.example.com"

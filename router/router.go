@@ -31,13 +31,17 @@ func InitRouter() {
 		log.Println("SetTrustedProxies error:",err)
 	}
 	r.Use(sessions.Sessions("session_id", g.Store))
-	// Resolve cross-domain
-	r.Use(cors.Default())
 
+	// 配置CORS中间件   
+	config := cors.DefaultConfig()  
+	config.AllowOrigins = append(config.AllowOrigins, g.Config.Server.CROS.AllowOrigins...)
+	config.AllowCredentials = g.Config.Server.CROS.AllowCredentials
+
+	// 将CORS中间件添加到路由引擎中  
+	r.Use(cors.New(config))  
 
 	pingGroup := r.Group("/")
 	{	
-		
 		// 使用路由组处理 HEAD 和 GET 请求
 		pingGroup.HEAD("/ping", func(c *gin.Context) {
 			c.String(http.StatusOK, "pong\n")

@@ -17,7 +17,14 @@ type ServerConfig struct {
 	Ssl 			SslConfig   `yaml:"ssl"`
 	TrustedProxies 	[]string 	`yaml:"trusted_proxies"`
 	Mail			MailConfig  `yaml:"mail"`
+	CROS			CrosConfig  `yaml:"cros"`
 }
+
+type CrosConfig struct {
+	AllowOrigins 	[]string 	`yaml:"allowOrigins"`
+	AllowCredentials bool		`yaml:"allowCredentials"`
+}
+
 type MailConfig struct {
 	SerderMail		string		`yaml:"sender-mail"`
 	SmtpServer		string		`yaml:"smtp-server"`

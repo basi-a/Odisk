@@ -14,6 +14,13 @@ server:
     port: 25
     username: "basi1024@163.com"
     password: "asgasga"
+  cros: 
+    allowOrigins:
+      - "https://127.0.0.1"
+      - "https://localhost"
+      - "https://xxxx.example.xyz"
+    allowCredentials: true
+    
 redis:
   redisAddr: "redis"
   redisPort: "6379"

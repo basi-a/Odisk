@@ -3,9 +3,9 @@ package controller
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"odisk/common"
 	m "odisk/model"
-	"time"
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
@@ -13,15 +13,21 @@ import (
 
 func SaveSession(c *gin.Context, userInfo m.UserInfo)  {
 	session := sessions.Default(c)
-	session.Options(sessions.Options{
-		MaxAge: int(time.Hour*24),
-		Secure: true,
-		HttpOnly: true,
+
+	// 设置 session 选项  
+	session.Options(sessions.Options{  
+		// Domain:         ".example.com",                   // 可选：设置 cookie 的域名  
+		// Path:           "/",                              // 可选：设置 cookie 的路径  
+		MaxAge:         86400 * 7,                        // 1 周  
+		Secure:         true,                             // 强制通过 HTTPS 传输  
+		HttpOnly:       true,                             // 限制 JavaScript 访问  
+		SameSite:       http.SameSiteLaxMode,              // 设置 SameSite 为 Lax  
 	})
 	session.Set("userInfo", userInfo)
 	if err := session.Save(); err != nil{
 		log.Println("save err",err)
 	}
+
 }
 
 // GET /userInfo

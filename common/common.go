@@ -16,8 +16,8 @@ func Success(c *gin.Context, msg string, data ...interface{}) {
 }
 
 func Error(c *gin.Context, msg string, err error) {
-	c.JSON(http.StatusOK, gin.H{
-		"code":  http.StatusOK,
+	c.JSON(http.StatusBadRequest, gin.H{
+		"code":  http.StatusBadRequest,
 		"msg":   msg,
 		"error": err.Error(),
 	})

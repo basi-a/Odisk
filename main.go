@@ -35,8 +35,8 @@ func startAndShutdownServer() {
 	// Check if the certificate and private key files exist
 	cert := g.Config.Server.Ssl.Cert
 	privateKey := g.Config.Server.Ssl.PrivateKey
-	log.Println(cert)
-	log.Println(privateKey)
+	// log.Println(cert)
+	// log.Println(privateKey)
 	if _, err := os.Stat(cert); os.IsNotExist(err) {
 		log.Fatalf("Certificate file does not exist: %s\n", cert)
 	}

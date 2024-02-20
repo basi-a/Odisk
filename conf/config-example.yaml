@@ -14,14 +14,14 @@ server:
       - "https://localhost"
       - "https://xxxx.example.xyz"
     allowCredentials: true
-    
   mail:
     sender-mail: "basi1024@163.com"
     smtp-server: "smtp.example.com"
     port: 25
     username: "basi1024@163.com"
     password: "asgasga"
-    
+    template: "template/emailTemplate.html"
+
 redis:
   redisAddr: "127.0.0.1"
   redisPort: "16379"

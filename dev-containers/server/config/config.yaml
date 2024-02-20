@@ -14,6 +14,7 @@ server:
     port: 25
     username: "basi1024@163.com"
     password: "asgasga"
+    template: "template/emailTemplate.html"
   cros: 
     allowOrigins:
       - "https://127.0.0.1"

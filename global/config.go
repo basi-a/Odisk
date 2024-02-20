@@ -18,6 +18,7 @@ type ServerConfig struct {
 	TrustedProxies 	[]string 	`yaml:"trusted_proxies"`
 	Mail			MailConfig  `yaml:"mail"`
 	CROS			CrosConfig  `yaml:"cros"`
+	Template 		string		`yaml:"template"`
 }
 
 type CrosConfig struct {

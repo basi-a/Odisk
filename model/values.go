@@ -1,8 +1,13 @@
 package model
-
 import (
 	g "odisk/global"
 )
+
+type EmailData struct {
+	Email 	string
+	Code	string
+}
+
 type UserInfo struct {
 	Email		string  `json:"email"`
 	UserName 	string `json:"username"`

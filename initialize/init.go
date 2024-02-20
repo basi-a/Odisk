@@ -9,6 +9,7 @@ import (
 func Initialize()  {
 	gob.Register(m.UserInfo{})
 	g.InitConfig()
+	g.InitTemplate()
 	g.InitGorm()
 	m.InitModel()
 	g.InitRedis()

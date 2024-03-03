@@ -18,7 +18,7 @@ type ServerConfig struct {
 	TrustedProxies 	[]string 	`yaml:"trusted_proxies"`
 	Mail			MailConfig  `yaml:"mail"`
 	CROS			CrosConfig  `yaml:"cros"`
-	Template 		string		`yaml:"template"`
+	
 }
 
 type CrosConfig struct {
@@ -32,6 +32,7 @@ type MailConfig struct {
 	Port			int			`yaml:"port"`
 	UserName		string		`yaml:"username"`
 	Password 		string      `yaml:"password"`
+	Template 		string		`yaml:"template"`
 }
 
 type SslConfig struct {

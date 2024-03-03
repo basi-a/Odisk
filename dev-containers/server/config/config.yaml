@@ -14,12 +14,12 @@ server:
     port: 25
     username: "basi1024@163.com"
     password: "asgasga"
-    template: "template/emailTemplate.html"
+    template: "/opt/template/emailTemplate.html"
   cros: 
     allowOrigins:
       - "https://127.0.0.1"
       - "https://localhost"
-      - "https://xxxx.example.xyz"
+      - "https://dev.basi-a.top"
     allowCredentials: true
     
 redis:

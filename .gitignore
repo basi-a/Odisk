@@ -4,5 +4,5 @@ dev-containers/db
 dev-containers/minio
 dev-containers/log
 dev-containers/server/cert
-dev-containers/haproxy-keepaliced/cert
+dev-containers/haproxy-keepalived/cert
 dev-containers/nginx/cert

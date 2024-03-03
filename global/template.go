@@ -13,7 +13,8 @@ func InitTemplate() {
 }
 
 func readEmailTemplate() {
-	templateBytes, err := os.ReadFile(Config.Server.Template)
+	templateBytes, err := os.ReadFile(Config.Server.Mail.Template)
+	// log.Println(Config.Server.Mail.Template)
 	if err != nil {
 		log.Fatalf("Failed to read template file: %v", err)
 	}

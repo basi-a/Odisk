@@ -1,6 +1,14 @@
 FROM fedora:38
 # 安装 HAProxy、Keepalived 和其他必要软件
-RUN dnf install -y haproxy keepalived iproute procps && \
+RUN sed -e 's|^metalink=|#metalink=|g' \
+    -e 's|^#baseurl=http://download.example/pub/fedora/linux|baseurl=https://mirrors.tuna.tsinghua.edu.cn/fedora|g' \
+    -i.bak \
+    /etc/yum.repos.d/fedora.repo \
+    /etc/yum.repos.d/fedora-modular.repo \
+    /etc/yum.repos.d/fedora-updates.repo \
+    /etc/yum.repos.d/fedora-updates-modular.repo
+RUN dnf makecache && \
+    dnf install -y haproxy keepalived iproute procps && \
     dnf clean all 
 RUN systemctl enable haproxy keepalived
 # 复制启动脚本到镜像内

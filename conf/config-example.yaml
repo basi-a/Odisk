@@ -12,7 +12,7 @@ server:
     allowOrigins:
       - "https://127.0.0.1"
       - "https://localhost"
-      - "https://xxxx.example.xyz"
+      - "https://dev.basi-a.top"
     allowCredentials: true
   mail:
     sender-mail: "basi1024@163.com"

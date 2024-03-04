@@ -39,7 +39,13 @@ x-hosts-common: &hosts-common
 # 食用方式
 ```bash
 git clone https://github.com/basi-a/odisk
-cd odisk
+git clone https://github.com/basi-a/odisk-font
+cd odisk-font
+npm install
+npm run build
+cp -r dist ../odisk/dev-containers/nginx/dist
+cd ../odisk
+./cert/create-cert.sh 
 go mod tidy
 ./quick-fun.sh
 ```

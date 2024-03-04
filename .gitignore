@@ -6,3 +6,5 @@ dev-containers/log
 dev-containers/server/cert
 dev-containers/haproxy-keepalived/cert
 dev-containers/nginx/cert
+dev-containers/nginx/dist
+cert/server*

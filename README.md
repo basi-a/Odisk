@@ -38,14 +38,20 @@ x-hosts-common: &hosts-common
 [Apifox 文档分享 ](https://apifox.com/apidoc/shared-60f72b42-a39e-4e18-85b5-a0c4e84e415d)
 # 食用方式
 ```bash
+mkdir dev-space
+cd dev-space
 git clone https://github.com/basi-a/odisk
 git clone https://github.com/basi-a/odisk-font
+
 cd odisk-font
 npm install
 npm run build
 cp -r dist ../odisk/dev-containers/nginx/dist
-cd ../odisk
-./cert/create-cert.sh 
+cd ../
+
+cd odisk/cert
+./create-cert.sh
+cd ../ 
 go mod tidy
 ./quick-fun.sh
 ```

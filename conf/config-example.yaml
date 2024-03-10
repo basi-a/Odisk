@@ -21,6 +21,15 @@ server:
     username: "basi1024@163.com"
     password: "asgasga"
     template: "template/emailTemplate.html"
+  admin:
+    useradmin: 
+      username: "useradmin"
+      password: "123456hello"
+      email:    "admin@example.com"
+    s3admin:
+      username: "s3admin"
+      password: "123456hello"
+      email:    "admin@example.com"
 
 redis:
   redisAddr: "127.0.0.1"

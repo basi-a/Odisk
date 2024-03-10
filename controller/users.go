@@ -1,11 +1,14 @@
 package controller
 
 import (
+	"encoding/base64"
 	"fmt"
+	"log"
 	"odisk/common"
+	g "odisk/global"
 	m "odisk/model"
 	u "odisk/utils"
-	g "odisk/global"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -27,7 +30,7 @@ func RegisterUser(c *gin.Context){
 	if emailData, ok := value.(m.EmailData); ok && emailData.Code == code{
 		user := m.Users{}
 		if username != "" && password != "" && email != "" {
-			err := user.AddUser(username, password, email)
+			err := user.AddUser(username, password, email, nil)
 			if err != nil {
 				common.Error(c, "注册失败, 请检查是否邮箱已使用, 或输入有误", err)
 			}else{
@@ -37,6 +40,16 @@ func RegisterUser(c *gin.Context){
 	}else{
 		common.Error(c, "邮箱验证失败", nil)
 	}
+
+	// 创建存储桶
+	bucketName := base64.RawStdEncoding.EncodeToString([]byte(username+email+code))
+	log.Println(bucketName)
+	if err := g.MakeBucket(bucketName); err != nil{
+		common.Error(c, "创建存储桶失败", err)
+	}else{
+		common.Success(c, "存储桶创建成功")
+	}
+
 }
 
 

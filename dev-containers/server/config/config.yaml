@@ -21,7 +21,16 @@ server:
       - "https://localhost"
       - "https://dev.basi-a.top"
     allowCredentials: true
-    
+  admin:
+    useradmin: 
+      username: "useradmin"
+      password: "123456hello"
+      email:    "admin@example.com"
+    s3admin:
+      username: "s3admin"
+      password: "123456hello"
+      email:    "admin@example.com"
+      
 redis:
   redisAddr: "redis"
   redisPort: "6379"

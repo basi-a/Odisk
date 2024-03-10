@@ -18,8 +18,19 @@ type ServerConfig struct {
 	TrustedProxies 	[]string 	`yaml:"trusted_proxies"`
 	Mail			MailConfig  `yaml:"mail"`
 	CROS			CrosConfig  `yaml:"cros"`
-	
+	Admin 			AdminConfig `yaml:"admin"`
 }
+
+type AdminConfig struct {
+	UserAdmin 	UserAndS3AdminConfig `yaml:"useradmin"`
+	S3Admin 	UserAndS3AdminConfig `yaml:"s3admin"`
+}
+type UserAndS3AdminConfig struct {
+	Username 	string	`yaml:"username"`
+	Password 	string	`yaml:"password"`
+	Email		string	`yaml:"email"`
+}
+
 
 type CrosConfig struct {
 	AllowOrigins 	[]string 	`yaml:"allowOrigins"`

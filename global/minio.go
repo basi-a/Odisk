@@ -11,20 +11,15 @@ import (
 var S3Client *minio.Core
 var S3Ctx context.Context
 func InitMinio()  {
-	endpoint 		:= Config.Minio.Endpoint
-	accessKeyId 	:= Config.Minio.AccessKeyID
-	secretAccessKey := Config.Minio.SecretAccessKey
-	usessl 			:= Config.Minio.UseSSL
-	bucketName 		:= Config.Minio.BucketName
-	location		:= Config.Minio.Location
+
 	S3Ctx = context.Background()
 	maxRetryCount := 5
 	var err error
 	for retryCount := 0; retryCount < maxRetryCount; retryCount++{
-		S3Client, err = minio.NewCore(endpoint, &minio.Options{
-			Creds: credentials.NewStaticV4(accessKeyId, secretAccessKey, ""),
-			Secure: usessl,
-			Region: location,
+		S3Client, err = minio.NewCore(Config.Minio.Endpoint, &minio.Options{
+			Creds: credentials.NewStaticV4(Config.Minio.AccessKeyID, Config.Minio.SecretAccessKey, ""),
+			Secure: Config.Minio.UseSSL,
+			Region: Config.Minio.Location,
 		})
 		if err == nil {
 			break
@@ -34,8 +29,13 @@ func InitMinio()  {
 		time.Sleep(time.Second*20)
 	}
 	
-	err = S3Client.MakeBucket(S3Ctx, bucketName, minio.MakeBucketOptions{
-		Region: location,
+
+}
+
+func MakeBucket(bucketName string)  error{
+
+	err := S3Client.MakeBucket(S3Ctx, bucketName, minio.MakeBucketOptions{
+		Region: Config.Minio.Location,
 	})
 	if err != nil {
 		// Check to see if we already own this bucket (which happens if you run this twice)
@@ -48,4 +48,5 @@ func InitMinio()  {
 	} else {
 		log.Printf("Successfully created %s\n", bucketName)
 	}
+	return nil
 }

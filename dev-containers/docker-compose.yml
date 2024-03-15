@@ -3,7 +3,7 @@ version: '3.8'
 # Settings and configurations that are common for all containers
 x-hosts-common: &hosts-common
   extra_hosts:
-      - "mariadb:172.40.20.10"
+      - "db:172.40.20.10"
       - "adminer:172.40.20.11"
       - "redis:172.40.20.12"
       - "nginx:172.40.20.13"
@@ -79,39 +79,73 @@ x-server-common: &server-common
       condition: service_healthy
     minio4:
       condition: service_healthy
-    mariadb:
+    db:
       condition: service_healthy
     redis:
       condition: service_healthy
 services:
-  mariadb:
-    <<: *hosts-common
-    image: mariadb:latest
-    hostname: mariadb
-    container_name: odisk_mariadb
+  # db:
+  #   <<: *hosts-common
+  #   image: mariadb:latest
+  #   hostname: mariadb
+  #   container_name: odisk_mariadb
+  #   restart: always
+  #   ports:
+  #     - "13306:3306"
+  #   volumes:
+  #     - ./db/data:/var/lib/mysql
+  #   environment:
+  #     MARIADB_MYSQL_LOCALHOST_USER: 1
+  #     MYSQL_ROOT_PASSWORD: 'FTVGBUY7uvib89Y'
+  #     MYSQL_DATABASE: 'odisk'
+  #     MYSQL_USER: 'odisk'
+  #     MYSQL_PASSWORD: 'FTVGBUY7uvib89Y'
+  #     MYSQL_CHARSET: 'utf8mb4'
+  #     MYSQL_COLLATION: 'utf8mb4_general_ci'
+  #     MYSQL_HOST: '%'
+  #   healthcheck:
+  #     test: ["CMD", "/usr/local/bin/healthcheck.sh", "--connect"]
+  #     interval: 5s
+  #     retries: 5
+  #     timeout: 5s
+  #   networks: 
+  #     app-network:
+  #       ipv4_address: 172.40.20.10
+  db:
+    image: postgres:16.2-alpine
+    hostname: postgres
+    container_name: odisk_postgres
     restart: always
     ports:
-      - "13306:3306"
-    volumes:
-      - ./db/data:/var/lib/mysql
+      - "15432:5432"
+    # set shared memory limit when using docker-compose
+    shm_size: 128mb
+    # or set shared memory limit when deploy via swarm stack
+    #volumes:
+    #  - type: tmpfs
+    #    target: /dev/shm
+    #    tmpfs:
+    #      size: 134217728 # 128*2^20 bytes = 128Mb
     environment:
-      MARIADB_MYSQL_LOCALHOST_USER: 1
-      MYSQL_ROOT_PASSWORD: 'FTVGBUY7uvib89Y'
-      MYSQL_DATABASE: 'odisk'
-      MYSQL_USER: 'odisk'
-      MYSQL_PASSWORD: 'FTVGBUY7uvib89Y'
-      MYSQL_CHARSET: 'utf8mb4'
-      MYSQL_COLLATION: 'utf8mb4_general_ci'
-      MYSQL_HOST: '%'
+      TZ: "Asia/Shanghai"
+      PGTZ: "Asia/Shanghai"
+      POSTGRES_USER: "odisk"
+      POSTGRES_PASSWORD: "FTVGBUY7uvib89Y"
+      POSTGRES_DB: "odisk"
+      PGDATA: "/var/lib/postgresql/data/pgdata"
+      POSTGRES_HOST_AUTH_METHOD: "scram-sha-256"
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256"
+    volumes:
+      - ./db/data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD", "/usr/local/bin/healthcheck.sh", "--connect"]
-      interval: 5s
-      retries: 5
-      timeout: 5s
+      test: ["CMD", "pg_isready", "-U","odisk","-d", "db_prod"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
     networks: 
       app-network:
         ipv4_address: 172.40.20.10
-      
+
   adminer:
     <<: *hosts-common
     image: adminer:latest
@@ -121,7 +155,7 @@ services:
     ports:
       - "28080:8080"
     depends_on:
-      mariadb:
+      db:
         condition: service_healthy
     networks: 
       app-network:
@@ -162,7 +196,7 @@ services:
     command: ["/bin/bash", "-c", "chown -R nginx:nginx /opt/dist /opt/cert && nginx -g 'daemon off;'"]
     restart: always
     depends_on:
-      - mariadb 
+      - db 
       - redis
       - keepalived_haproxy1
       - keepalived_haproxy2

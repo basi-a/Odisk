@@ -25,11 +25,11 @@ server:
     useradmin: 
       username: "useradmin"
       password: "123456hello"
-      email:    "admin@example.com"
+      email:    "useradmin@example.com"
     s3admin:
       username: "s3admin"
       password: "123456hello"
-      email:    "admin@example.com"
+      email:    "s3admin@example.com"
 
 redis:
   redisAddr: "127.0.0.1"
@@ -37,14 +37,26 @@ redis:
   redisPassword: "TGVG8791HUBH"
   redisPoolConns: 2048
 
-mariadb:
-  dbUsername: "odisk"
-  dbPassword: "FTVGBUY7uvib89Y"
-  dbHost: "127.0.0.1"
-  dbPort: "13306"
-  dbName: "odisk"
-  timeout: "10s"
-  dbPoolConns: 2048
+
+database:
+  dbselect: "pgsql"
+  mariadb:
+    dbUsername: 
+    dbPassword: 
+    dbHost: 
+    dbPort: 
+    dbName: 
+    timeout:
+    dbPoolConns: 
+  pgsql:
+    dbUsername: "odisk"
+    dbPassword: "FTVGBUY7uvib89Y"
+    dbHost: "127.0.0.1"
+    dbPort: "15432"
+    dbName: "odisk"
+    sslmode: "disable"
+    timezone: "Asia/Shanghai"
+    dbPoolConns: 2048
 
 minio:
   endpoint: "172.40.20.16:9000"

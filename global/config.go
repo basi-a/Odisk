@@ -57,6 +57,12 @@ type RedisConfig struct {
 	RedisPort		string	`yaml:"redisPort"`
 	RedisPoolConns	int		`yaml:"redisPoolConns"`
 }
+type DatabaseConfig struct {
+	Dbselect	string 		`yaml:"dbselect"`
+	Mariadb 	MariadbConfig `yaml:"mariadb"`
+	Pgsql 		PgsqlConfig   `yaml:"pgsql"`
+}
+
 //mariadb config
 type MariadbConfig struct {
 	DBusername		string	`yaml:"dbUsername"`
@@ -68,6 +74,17 @@ type MariadbConfig struct {
 	DBPoolConns		int		`yaml:"dbPoolConns"`
 }
 
+type PgsqlConfig struct {
+	//host=localhost user=gorm password=gorm dbname=gorm port=9920 sslmode=disable TimeZone=Asia/Shanghai
+	DBusername		string	`yaml:"dbUsername"`
+	DBpassword 		string	`yaml:"dbPassword"`
+	DBhost			string	`yaml:"dbHost"`
+	DBport			string	`yaml:"dbPort"`
+	DBname 			string	`yaml:"dbName"`
+	Sslmode 		string 	`yaml:"sslmode"`
+	TimeZone 		string 	`yaml:"timezone"`
+	DBPoolConns		int		`yaml:"dbPoolConns"`
+}
 //minio config
 type MinioConfig struct {
 	Endpoint		string	`yaml:"endpoint"`
@@ -81,7 +98,7 @@ type AppConfig struct {
 
 	Server 		ServerConfig 	`yaml:"server"`
 	Redis		RedisConfig		`yaml:"redis"`
-	Mariadb		MariadbConfig	`yaml:"mariadb"`
+	Database 	DatabaseConfig 	`yaml:"database"`
 	Minio 		MinioConfig		`yaml:"minio"`
 }
 

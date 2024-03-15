@@ -1,61 +1,70 @@
 package controller
 
 import (
-	"encoding/base64"
+	"crypto/md5"
 	"fmt"
-	"log"
 	"odisk/common"
 	g "odisk/global"
 	m "odisk/model"
 	u "odisk/utils"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
 
 // POST /v1/register 注册用户
-func RegisterUser(c *gin.Context){
+func RegisterUser(c *gin.Context) {
 	username := c.PostForm("username")
 	password := c.PostForm("password")
 	email := c.PostForm("email")
 	code := c.PostForm("code")
 	maxUsernameLength := 20
 	// 检查用户名长度
-    if  len(username) > maxUsernameLength {
-        common.Error(c, fmt.Sprintf("用户名长度必须在%d以内", maxUsernameLength), nil)
-        return
-    }
+	if len(username) > maxUsernameLength {
+		common.Error(c, fmt.Sprintf("用户名长度必须在%d以内", maxUsernameLength), nil)
+		return
+	}
 
 	// 验证邮箱
 	value := ReadSession(c, "EmailVerifyCode")
-	if emailData, ok := value.(m.EmailData); ok && emailData.Code == code{
+	// 生成存储桶名字
+	// bucketName := base64.RawStdEncoding.EncodeToString([]byte(username + email + code))
+	str := username + email + time.Now().String()
+	bucketName := md5.New().Sum([]byte(str))
+	if emailData, ok := value.(m.EmailData); ok && emailData.Code == code {
 		user := m.Users{}
 		if username != "" && password != "" && email != "" {
-			err := user.AddUser(username, password, email, nil)
+
+			userID, err := user.AddUser(username, password, email, nil)
+			bucketmap := m.Bucketmap{
+				UserID:     *userID,
+				BucketName: string(bucketName),
+			}
 			if err != nil {
 				common.Error(c, "注册失败, 请检查是否邮箱已使用, 或输入有误", err)
-			}else{
+			} else if err := bucketmap.SaveMap(); err != nil {
+				common.Error(c, "用户与存储桶对应关系记录失败", err)
+			} else {
 				common.Success(c, fmt.Sprintf("注册成功, 用户名: %s", username))
 			}
-		}
-	}else{
-		common.Error(c, "邮箱验证失败", nil)
-	}
 
-	// 创建存储桶
-	bucketName := base64.RawStdEncoding.EncodeToString([]byte(username+email+code))
-	log.Println(bucketName)
-	if err := g.MakeBucket(bucketName); err != nil{
-		common.Error(c, "创建存储桶失败", err)
-	}else{
-		common.Success(c, "存储桶创建成功")
+			// 创建存储桶
+			// log.Println(bucketName)
+			if err := g.MakeBucket(bucketmap.BucketName); err != nil {
+				common.Error(c, "创建存储桶失败", err)
+			} else {
+				common.Success(c, "存储桶创建成功")
+			}
+		}
+
+	} else {
+		common.Error(c, "邮箱验证失败", nil)
 	}
 
 }
 
-
-
 // POST /v1/login 登陆
-func Login(c *gin.Context)  {
+func Login(c *gin.Context) {
 	email := c.PostForm("email")
 	password := c.PostForm("password")
 
@@ -68,66 +77,65 @@ func Login(c *gin.Context)  {
 		userInfo, err := m.GetUserInfo(email)
 		if err != nil {
 			common.Error(c, "获取信息失败", err)
-		}else{
+		} else {
 			SaveSession(c, "userInfo", userInfo)
 			common.Success(c, fmt.Sprintf("Welcome %s", email))
 		}
-		
+
 	}
 }
 
 // POST /v1/emailVerify
-func EmailVerifyCode(c *gin.Context)   {
+func EmailVerifyCode(c *gin.Context) {
 	email := c.PostForm("email")
 	code := u.GenerateVerificationCode(6)
 	object := "Verify your email address"
-	
+
 	data := m.EmailData{
 		Email: email,
-		Code: code,
+		Code:  code,
 	}
 	if err := u.SendEmail(email, object, g.EmailTemplate, data); err != nil {
 		common.Error(c, "发送邮件错误", err)
-	}else{
+	} else {
 		SaveSession(c, "EmailVerifyCode", data)
 		common.Success(c, "发送邮件成功")
 	}
 }
 
 // GET /v1/users  auth 组
-func ListUsers(c *gin.Context)  {
-	
+func ListUsers(c *gin.Context) {
+
 }
 
 // POST /v1/users/delate auth 组
-func DelUser(c *gin.Context)  {
-	
+func DelUser(c *gin.Context) {
+
 }
 
 // POST /v1/users/update auth 组
 func UpdateUser(c *gin.Context) {
-	
+
 }
 
 // GET /v1/users/info auth 组
 func UserInfo(c *gin.Context) {
-	
+
 }
 
-
 // GET /userInfo
-func GetUserInfo(c *gin.Context)  {
+func GetUserInfo(c *gin.Context) {
 
 	value := ReadSession(c, "userInfo")
 	// 尝试将读取的值断言为 m.UserInfo 类型
-	if userInfo, ok := value.(m.UserInfo); ok && userInfo.Email != ""{
+	if userInfo, ok := value.(m.UserInfo); ok && userInfo.Email != "" {
 		common.Success(c, "获取成功", fmt.Sprintf("username: %s", userInfo.UserName))
-	}else{
+	} else {
 		common.Error(c, "获取信息失败", nil)
 	}
 }
 
 // GET /logout
-func Logout(c *gin.Context)  {
+func Logout(c *gin.Context) {
 	DelSession(c, "userInfo")
 }

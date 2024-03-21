@@ -53,12 +53,6 @@ func InitRouter() {
 
 	v1 := r.Group("/v1")
 	{
-		// v1.HEAD("/ping", func(c *gin.Context) {
-		// 	c.String(http.StatusOK, "pong\n")
-		// })
-		// v1.GET("/ping", func(c *gin.Context) {
-		// 	c.String(http.StatusOK, "pong\n")
-		// })
 
 		v1.POST("/register", controller.RegisterUser)
 		v1.POST("/login", controller.Login)

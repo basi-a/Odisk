@@ -9,6 +9,8 @@ import (
 var EmailTemplate *template.Template
 
 func InitTemplate() {
+	log.Println("Reading system email template ...")
+	defer log.Println("Reading email template completed.")
 	readEmailTemplate()
 }
 

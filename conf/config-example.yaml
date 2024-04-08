@@ -65,3 +65,14 @@ minio:
   usessl: false
   bucketName: "odisk"
   location: "zh-private-1"
+
+nsq:
+  nsqlookupd:
+    - "172.40.20.24:4161"
+    - "172.40.20.25:4161"
+  nsqd:
+    - "172.40.20.26:4150"
+    - "172.40.20.27:4150"
+    - "172.40.20.28:4150"
+  nsqadmin:
+    - "172.40.20.29:4171"

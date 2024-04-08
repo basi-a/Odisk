@@ -13,6 +13,7 @@ import (
 var DB *gorm.DB
 
 func InitGorm() {
+	
 	switch Config.Database.Dbselect {
 	case "mariadb":
 		RetryWithExponentialBackoff(UseMysql, "Database Connection")

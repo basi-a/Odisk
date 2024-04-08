@@ -6,119 +6,129 @@ import (
 
 	"github.com/spf13/viper"
 )
-//server config
+
+// server config
 type ServerConfig struct {
 	//running mode, debug or release
-	Mode			string		`yaml:"mode"`
+	Mode string `yaml:"mode"`
 	//server runing port
-	Port			string		`yaml:"port"`
+	Port string `yaml:"port"`
 	//secret
-	Secret 			string		`yaml:"secret"`
-	Ssl 			SslConfig   `yaml:"ssl"`
-	TrustedProxies 	[]string 	`yaml:"trusted_proxies"`
-	Mail			MailConfig  `yaml:"mail"`
-	CROS			CrosConfig  `yaml:"cros"`
-	Admin 			AdminConfig `yaml:"admin"`
+	Secret         string      `yaml:"secret"`
+	Ssl            SslConfig   `yaml:"ssl"`
+	TrustedProxies []string    `yaml:"trusted_proxies"`
+	Mail           MailConfig  `yaml:"mail"`
+	CROS           CrosConfig  `yaml:"cros"`
+	Admin          AdminConfig `yaml:"admin"`
 }
 
 type AdminConfig struct {
-	UserAdmin 	UserAndS3AdminConfig `yaml:"useradmin"`
-	S3Admin 	UserAndS3AdminConfig `yaml:"s3admin"`
+	UserAdmin UserAndS3AdminConfig `yaml:"useradmin"`
+	S3Admin   UserAndS3AdminConfig `yaml:"s3admin"`
 }
 type UserAndS3AdminConfig struct {
-	Username 	string	`yaml:"username"`
-	Password 	string	`yaml:"password"`
-	Email		string	`yaml:"email"`
+	Username string `yaml:"username"`
+	Password string `yaml:"password"`
+	Email    string `yaml:"email"`
 }
 
-
 type CrosConfig struct {
-	AllowOrigins 	[]string 	`yaml:"allowOrigins"`
-	AllowCredentials bool		`yaml:"allowCredentials"`
+	AllowOrigins     []string `yaml:"allowOrigins"`
+	AllowCredentials bool     `yaml:"allowCredentials"`
 }
 
 type MailConfig struct {
-	SerderMail		string		`yaml:"sender-mail"`
-	SmtpServer		string		`yaml:"smtp-server"`
-	Port			int			`yaml:"port"`
-	UserName		string		`yaml:"username"`
-	Password 		string      `yaml:"password"`
-	Template 		string		`yaml:"template"`
+	SerderMail string `yaml:"sender-mail"`
+	SmtpServer string `yaml:"smtp-server"`
+	Port       int    `yaml:"port"`
+	UserName   string `yaml:"username"`
+	Password   string `yaml:"password"`
+	Template   string `yaml:"template"`
 }
 
 type SslConfig struct {
-	PrivateKey		string		`yaml:"privatekey"`
-	Cert			string 		`yaml:"cert"`
-}
-//redis config
-type RedisConfig struct {
-	RedisAddr		string	`yaml:"redisAddr"`
-	RedisPassword	string	`yaml:"redisPassword"`
-	RedisPort		string	`yaml:"redisPort"`
-	RedisPoolConns	int		`yaml:"redisPoolConns"`
-}
-type DatabaseConfig struct {
-	Dbselect	string 		`yaml:"dbselect"`
-	Mariadb 	MariadbConfig `yaml:"mariadb"`
-	Pgsql 		PgsqlConfig   `yaml:"pgsql"`
+	PrivateKey string `yaml:"privatekey"`
+	Cert       string `yaml:"cert"`
 }
 
-//mariadb config
+// redis config
+type RedisConfig struct {
+	RedisAddr      string `yaml:"redisAddr"`
+	RedisPassword  string `yaml:"redisPassword"`
+	RedisPort      string `yaml:"redisPort"`
+	RedisPoolConns int    `yaml:"redisPoolConns"`
+}
+type DatabaseConfig struct {
+	Dbselect string        `yaml:"dbselect"`
+	Mariadb  MariadbConfig `yaml:"mariadb"`
+	Pgsql    PgsqlConfig   `yaml:"pgsql"`
+}
+
+// mariadb config
 type MariadbConfig struct {
-	DBusername		string	`yaml:"dbUsername"`
-	DBpassword 		string	`yaml:"dbPassword"`
-	DBhost			string	`yaml:"dbHost"`
-	DBport			string	`yaml:"dbPort"`
-	DBname 			string	`yaml:"dbName"`
-	Timeout			string	`yaml:"timeout"`
-	DBPoolConns		int		`yaml:"dbPoolConns"`
+	DBusername  string `yaml:"dbUsername"`
+	DBpassword  string `yaml:"dbPassword"`
+	DBhost      string `yaml:"dbHost"`
+	DBport      string `yaml:"dbPort"`
+	DBname      string `yaml:"dbName"`
+	Timeout     string `yaml:"timeout"`
+	DBPoolConns int    `yaml:"dbPoolConns"`
 }
 
 type PgsqlConfig struct {
 	//host=localhost user=gorm password=gorm dbname=gorm port=9920 sslmode=disable TimeZone=Asia/Shanghai
-	DBusername		string	`yaml:"dbUsername"`
-	DBpassword 		string	`yaml:"dbPassword"`
-	DBhost			string	`yaml:"dbHost"`
-	DBport			string	`yaml:"dbPort"`
-	DBname 			string	`yaml:"dbName"`
-	Sslmode 		string 	`yaml:"sslmode"`
-	TimeZone 		string 	`yaml:"timezone"`
-	DBPoolConns		int		`yaml:"dbPoolConns"`
+	DBusername  string `yaml:"dbUsername"`
+	DBpassword  string `yaml:"dbPassword"`
+	DBhost      string `yaml:"dbHost"`
+	DBport      string `yaml:"dbPort"`
+	DBname      string `yaml:"dbName"`
+	Sslmode     string `yaml:"sslmode"`
+	TimeZone    string `yaml:"timezone"`
+	DBPoolConns int    `yaml:"dbPoolConns"`
 }
-//minio config
-type MinioConfig struct {
-	Endpoint		string	`yaml:"endpoint"`
-	AccessKeyID		string	`yaml:"accessKeyID"`
-	SecretAccessKey string	`yaml:"secretAccessKey"`
-	UseSSL			bool	`yaml:"usessl"`
-	BucketName		string	`yaml:"bucketName"`
-	Location		string	`yaml:"location"`
-}
-type AppConfig struct {
 
-	Server 		ServerConfig 	`yaml:"server"`
-	Redis		RedisConfig		`yaml:"redis"`
-	Database 	DatabaseConfig 	`yaml:"database"`
-	Minio 		MinioConfig		`yaml:"minio"`
+// minio config
+type MinioConfig struct {
+	Endpoint        string `yaml:"endpoint"`
+	AccessKeyID     string `yaml:"accessKeyID"`
+	SecretAccessKey string `yaml:"secretAccessKey"`
+	UseSSL          bool   `yaml:"usessl"`
+	BucketName      string `yaml:"bucketName"`
+	Location        string `yaml:"location"`
+}
+type NsqConfig struct {
+	Nsqlookupd []string `yaml:"nsqlookupd"`
+	Nsqd       []string `yaml:"nsqd"`
+	Nsqadmin   []string `yaml:"nsqadmin"`
+}
+
+type AppConfig struct {
+	Server   ServerConfig   `yaml:"server"`
+	Redis    RedisConfig    `yaml:"redis"`
+	Database DatabaseConfig `yaml:"database"`
+	Minio    MinioConfig    `yaml:"minio"`
+	Nsq      NsqConfig      `yaml:"nsq"`
 }
 
 var Paths []string = []string{
-	 	"/etc/odisk/config.yaml",  
- 		"/usr/local/etc/odisk/config.yaml",  
- 		"./conf/config-example.yaml",  
+	"/etc/odisk/config.yaml",
+	"/usr/local/etc/odisk/config.yaml",
+	"./conf/config-example.yaml",
 }
 
-
 var Config AppConfig
-func InitConfig()  {
-	// 遍历路径列表，尝试找到存在的配置文件  
- 	var configFile string  
- 	for _, path := range Paths {  
- 		if _, err := os.Stat(path); err == nil {  
- 			configFile = path  
- 		break  
- 		}  
- 	}
+
+func InitConfig() {
+	log.Println("Reading global configuration file ...")
+	defer log.Println("Global configuration reading completed.")
+	// 遍历路径列表，尝试找到存在的配置文件
+	var configFile string
+	for _, path := range Paths {
+		if _, err := os.Stat(path); err == nil {
+			configFile = path
+			break
+		}
+	}
 	viper.SetConfigFile(configFile)
 	viper.SetConfigType("yaml")
 
@@ -128,4 +138,5 @@ func InitConfig()  {
 	if err := viper.Unmarshal(&Config); err != nil {
 		log.Fatalf("Error unmarshalling config: %v", err)
 	}
+
 }

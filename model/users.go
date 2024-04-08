@@ -16,8 +16,11 @@ type Users struct {
 	Permission string `json:"Permission" gorm:"default:general"` //general/userAdmin/s3Admin
 }
 
-func InitUser() {
-	g.DB.AutoMigrate(Users{})
+func AutoMigrateUser() {
+	if g.DB.Migrator().HasTable(&Users{}) {
+		return
+	}
+	g.DB.AutoMigrate(&Users{})
 	type AdminPermission struct {
 		userAdmin string
 		s3Admin   string
@@ -32,14 +35,15 @@ func InitUser() {
 		g.Config.Server.Admin.UserAdmin.Password,
 		g.Config.Server.Admin.UserAdmin.Email,
 		&permission.userAdmin); err != nil {
-		log.Fatalln("User administrator creation failed:", err)
+		log.Println("User administrator creation failed:", err)
 	}
+
 	if _, err := user.AddUser(
 		g.Config.Server.Admin.S3Admin.Username,
 		g.Config.Server.Admin.S3Admin.Password,
 		g.Config.Server.Admin.S3Admin.Email,
 		&permission.s3Admin); err != nil {
-		log.Fatalln("S3 administrator creation failed:", err)
+		log.Println("S3 administrator creation failed:", err)
 	}
 }
 
@@ -51,7 +55,7 @@ func (users *Users) AddUser(username, password, email string, permission *string
 
 	if err := db.Where("email = ?", email).First(&existingUser).Error; err == nil {
 		return &existingUser.ID, nil // 用户已存在，返回现有用户的 ID
-	} 
+	}
 
 	hashedPassword, err := hashPassword(password)
 	if err != nil {

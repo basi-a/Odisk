@@ -89,17 +89,23 @@ func Login(c *gin.Context) {
 func EmailVerifyCode(c *gin.Context) {
 	email := c.PostForm("email")
 	code := u.GenerateVerificationCode(6)
-	object := "Verify your email address"
+	subject := "Verify your email address"
 
 	data := m.EmailData{
 		Email: email,
 		Code:  code,
 	}
-	if err := u.SendEmail(email, object, g.EmailTemplate, data); err != nil {
+	nsqBody := g.EmailData{
+		Email: 		email,
+		Subject: 	subject,
+		T:			g.EmailTemplate,
+		Data: 		data,
+	}
+	if err := g.NsqPublish("email", nsqBody); err != nil {
 		common.Error(c, "发送邮件错误", err)
 	} else {
 		SaveSession(c, "EmailVerifyCode", data)
-		common.Success(c, "发送邮件成功")
+		common.Success(c, "发送邮件成功, 请稍等")
 	}
 }
 

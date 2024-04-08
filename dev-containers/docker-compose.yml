@@ -1,5 +1,3 @@
-version: '3.8'
-
 # Settings and configurations that are common for all containers
 x-hosts-common: &hosts-common
   extra_hosts:
@@ -17,6 +15,12 @@ x-hosts-common: &hosts-common
       - "server2:172.40.20.21"
       - "server3:172.40.20.22"
       - "server4:172.40.20.23"
+      - "nsqlookupd1:172.40.20.24"
+      - "nsqlookupd2:172.40.20.25"
+      - "nsqd1:172.40.20.26"
+      - "nsqd2:172.40.20.27"
+      - "nsqd3:172.40.20.28"
+      - "nsqadmin:172.40.20.29"
       - "keepalived.vip:172.40.20.100"
 
 x-minio-common: &minio-common
@@ -83,6 +87,25 @@ x-server-common: &server-common
       condition: service_healthy
     redis:
       condition: service_healthy
+
+x-nsqlookupd-common: &nsqlookupd-common
+  <<: *hosts-common
+  image: nsqio/nsq
+  command: /nsqlookupd
+  healthcheck:
+    test: ["CMD", 'pgrep', '-f', 'nsqlookupd']
+    interval: 1m
+    retries: 10
+    timeout: 5s
+x-nsqd-common: &nsqd-common
+  <<: *hosts-common
+  image: nsqio/nsq
+  command: /nsqd --broadcast-address=nsqd1 --lookupd-tcp-address=nsqlookupd1:4160 --lookupd-tcp-address=nsqlookupd2:4160
+  depends_on:
+    - nsqlookupd1
+    - nsqlookupd2
+
+
 services:
   # db:
   #   <<: *hosts-common
@@ -112,6 +135,7 @@ services:
   #     app-network:
   #       ipv4_address: 172.40.20.10
   db:
+    <<: *hosts-common
     image: postgres:16.2-alpine
     hostname: postgres
     container_name: odisk_postgres
@@ -120,12 +144,7 @@ services:
       - "15432:5432"
     # set shared memory limit when using docker-compose
     shm_size: 128mb
-    # or set shared memory limit when deploy via swarm stack
-    #volumes:
-    #  - type: tmpfs
-    #    target: /dev/shm
-    #    tmpfs:
-    #      size: 134217728 # 128*2^20 bytes = 128Mb
+
     environment:
       TZ: "Asia/Shanghai"
       PGTZ: "Asia/Shanghai"
@@ -298,6 +317,52 @@ services:
     networks: 
       app-network:
         ipv4_address: 172.40.20.23
+
+
+
+  nsqlookupd1:
+    <<: *nsqlookupd-common
+    container_name: odisk_nsqlookupd1
+    networks: 
+      app-network:
+        ipv4_address: 172.40.20.24
+  nsqlookupd2:
+    <<: *nsqlookupd-common
+    container_name: odisk_nsqlookupd2
+    networks: 
+      app-network:
+        ipv4_address: 172.40.20.25
+
+  nsqd1:
+    <<: *nsqd-common
+    container_name: odisk_nsqd1
+    networks: 
+      app-network:
+        ipv4_address: 172.40.20.26
+  nsqd2:
+    <<: *nsqd-common
+    container_name: odisk_nsqd2
+    networks: 
+      app-network:
+        ipv4_address: 172.40.20.27
+  nsqd3:
+    <<: *nsqd-common
+    container_name: odisk_nsqd3
+    networks: 
+      app-network:
+        ipv4_address: 172.40.20.28
+
+  nsqadmin:
+    <<: *hosts-common
+    image: nsqio/nsq
+    container_name: odisk_nsqadmin
+    command: /nsqadmin --lookupd-http-address=nsqlookupd1:4161 --lookupd-http-address=nsqlookupd2:4161
+    depends_on:
+      - nsqlookupd1
+      - nsqlookupd2
+    networks: 
+      app-network:
+        ipv4_address: 172.40.20.29
 
 networks:
   app-network:

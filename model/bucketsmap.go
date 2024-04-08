@@ -20,6 +20,10 @@ func (bucketmap *Bucketmap) SaveMap() error {
 	return nil
 }
 
-func InitBucketmap() {
-	g.DB.AutoMigrate(Bucketmap{})
+func AutoMigrateBucketmap() {
+	if g.DB.Migrator().HasTable(&Users{}) {
+		return
+	}
+	g.DB.AutoMigrate(&Bucketmap{})
+
 }

@@ -1,6 +1,9 @@
 package model
 
+import "log"
+
 func InitModel()  {
-	InitUser()
-	InitBucketmap()
+	defer log.Println("Initialization of database table completed. ")
+	AutoMigrateUser()
+	AutoMigrateBucketmap()
 }

@@ -15,6 +15,8 @@ import (
 )
 
 func InitRouter() {
+	log.Println("Route is initializing ...")
+	defer log.Println("Route initialization completed.")
 	trusted_proxies := g.Config.Server.TrustedProxies
 	mode := g.Config.Server.Mode
 	setMode(mode)

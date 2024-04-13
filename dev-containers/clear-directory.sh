@@ -5,6 +5,7 @@ sudo rm -rf db
 sudo rm -rf minio
 sudo rm -rf static
 sudo rm -rf log
+sudo rm -rf nsq
 sudo rm server/odisk
 sudo rm -rf server/cert
 sudo rm -rf haproxy-keepalived/cert

@@ -153,35 +153,38 @@ func (s *Server) checkFileExists(path string) error {
 }
 
 func main() {
-    ctx, cancel := context.WithCancel(context.Background())
-    defer cancel()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
-    initialize.Initialize()
+	initialize.Initialize()
 
-    srv = &Server{}
-    if err := srv.Start(ctx); err != nil {
-        log.Fatal("Failed to start server:", err)
-    }
+	srv = &Server{}
+	if err := srv.Start(ctx); err != nil {
+		log.Fatal("Failed to start server:", err)
+	}
 
-    // Handle shutdown
-    shutdownHandler(ctx)
+	// Handle shutdown
+	shutdownHandler(ctx)
 
-    log.Println("Server exited gracefully")
+	log.Println("Server exited gracefully")
 }
 
 func shutdownHandler(ctx context.Context) {
-    // Create a signal channel and start listening for interrupt signals
-    quit := make(chan os.Signal, 1)
-    signal.Notify(quit, os.Interrupt)
+	// Create a signal channel and start listening for interrupt signals
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, os.Interrupt)
 
-    <-quit
-    log.Println("Received interrupt signal, shutting down...")
+	<-quit
+	log.Println("Received interrupt signal, shutting down...")
 
-    g.Producer.Stop()
-    g.Consumer.Stop()
+	g.Producer.Stop()
 
-    // Gracefully shut down the server
-    if err := srv.Shutdown(ctx); err != nil {
-        log.Fatal("Server Shutdown:", err)
-    }
+	for _, consumer := range g.Consumers {
+		consumer.Stop()
+	}
+
+	// Gracefully shut down the server
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Fatal("Server Shutdown:", err)
+	}
 }

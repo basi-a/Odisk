@@ -2,10 +2,11 @@ package global
 
 import (
 	"encoding/json"
+	"fmt"
+	"log"
+	// "math/rand"
 
 	"html/template"
-
-	"strings"
 
 	"github.com/nsqio/go-nsq"
 	"github.com/wneessen/go-mail"
@@ -19,41 +20,65 @@ type EmailData struct {
 }
 
 var Producer *nsq.Producer
-var Consumer *nsq.Consumer
+var Consumers []*nsq.Consumer
 
 func InitNsq() {
-
-	RetryWithExponentialBackoff(
-		func() error {
-			return CreateAndStartConsumer("email", "user-auth")
-		}, "Create and start Nsq Consumer")
-
-	RetryWithExponentialBackoff(CreateProducer, "Create Nsq Producer")
+	defer log.Println("nsq producer and consumer initialization completed.")
+	log.Println("Initialize nsq's producer and consumers....")
+	RetryWithExponentialBackoff(CreateNsqProducer, "Create Nsq Producer", 5)
+	RetryWithExponentialBackoff(CreateAndStartNsqConsumer, "Create and start Nsq Consumer", 5)
 }
 
-func CreateProducer() error {
+// 一个服务端程序，对应一个localhost的nsqd，且写入本地文件，然后集体使用nsqlookupd，均衡负载消费
+func CreateNsqProducer() error {
 	var err error
-	nsqdAddr := strings.Join(Config.Nsq.Nsqd, ";")
-	Producer, err = nsq.NewProducer(nsqdAddr, nsq.NewConfig())
-	if err != nil {
+
+	if Producer, err = nsq.NewProducer(Config.Nsq.Nsqd+":"+Config.Nsq.Port.Nsqd.TCP, nsq.NewConfig()); err != nil {
+		log.Println("Error creating producer:", err)
 		return err
 	}
+
+	if err = Producer.Ping(); err != nil {
+		log.Println("Error pinging nsqd:", err)
+		Producer.Stop()
+		return err
+	}
+
+	for topic := range Config.Nsq.Topics {
+		if err = NsqPublish(topic, "topic created"); err != nil {
+			log.Println("Error publishing message:", err)
+			return err
+		}
+	}
+
 	return nil
 }
 
-func CreateAndStartConsumer(topic, channel string) error {
-	var err error
+func CreateAndStartNsqConsumer() error {
+	nsqlookupdAddrsWithPort := make([]string, 0)
 
-	Consumer, err = nsq.NewConsumer(topic, channel, nsq.NewConfig())
-	if err != nil {
-		return err
+	for _, v := range Config.Nsq.Nsqlookupd {
+		nsqlookupdAddrsWithPort = append(nsqlookupdAddrsWithPort, v+":"+Config.Nsq.Port.Nsqlookupd.HTTP)
 	}
+	consumers := make([]*nsq.Consumer, 0)
+	for topic, channals := range Config.Nsq.Topics {
 
-	Consumer.AddConcurrentHandlers(nsq.HandlerFunc(msgHandler), 5)
+		for _, channal := range channals {
+			consumer, err := nsq.NewConsumer(topic, channal, nsq.NewConfig())
+			if err != nil {
+				return err
+			}
 
-	if err = Consumer.ConnectToNSQLookupds(Config.Nsq.Nsqlookupd); err != nil {
-		return err
+			consumer.AddConcurrentHandlers(nsq.HandlerFunc(msgHandler), 5)
+
+			if err = consumer.ConnectToNSQLookupds(nsqlookupdAddrsWithPort); err != nil {
+				return err
+			}
+
+			consumers = append(consumers, consumer)
+		}
 	}
+	Consumers = consumers
 	return nil
 }
 
@@ -77,16 +102,17 @@ func msgHandler(message *nsq.Message) error {
 		if err := sendEmail(ty.Email, ty.Subject, ty.T, ty.Data); err != nil {
 			return err
 		}
+	case string:
+		log.Printf("Msg Body type: %v , data: %v", ty, data)
 	default:
-		return &UnknowTypeError{ty}
+		return fmt.Errorf("unknow type: %v", ty)
 	}
 
 	return nil
 }
 
 /*
-	SendEmail 发送一封邮件给指定的收件人。
-
+SendEmail 发送一封邮件给指定的收件人。
 参数：
 email: 收件人的邮箱地址。
 subject: 邮件的主题。

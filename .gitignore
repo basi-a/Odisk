@@ -1,6 +1,7 @@
 odisk
 dev-containers/static
 dev-containers/db
+dev-containers/nsq
 dev-containers/minio
 dev-containers/log
 dev-containers/server/cert

@@ -13,7 +13,7 @@ var S3Ctx context.Context
 
 func InitMinio() {
 	S3Ctx = context.Background()
-	RetryWithExponentialBackoff(UseMinio, "Minio Connection")
+	RetryWithExponentialBackoff(UseMinio, "Minio Connection", 5)
 }
 
 func UseMinio() error {

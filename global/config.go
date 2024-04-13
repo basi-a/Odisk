@@ -97,9 +97,19 @@ type MinioConfig struct {
 	Location        string `yaml:"location"`
 }
 type NsqConfig struct {
-	Nsqlookupd []string `yaml:"nsqlookupd"`
-	Nsqd       []string `yaml:"nsqd"`
-	Nsqadmin   []string `yaml:"nsqadmin"`
+	Port struct {
+		Nsqlookupd struct {
+			TCP  string `mapstructure:"tcp"`
+			HTTP string `mapstructure:"http"`
+		} `mapstructure:"nsqlookupd"`
+		Nsqd struct {
+			TCP  string `mapstructure:"tcp"`
+			HTTP string `mapstructure:"http"`
+		} `mapstructure:"nsqd"`
+	} `mapstructure:"port"`
+	Nsqlookupd []string            `yaml:"nsqlookupd"`
+	Nsqd       string            `yaml:"nsqd"`
+	Topics     map[string][]string `mapstructure:"topics"`
 }
 
 type AppConfig struct {
@@ -107,7 +117,7 @@ type AppConfig struct {
 	Redis    RedisConfig    `yaml:"redis"`
 	Database DatabaseConfig `yaml:"database"`
 	Minio    MinioConfig    `yaml:"minio"`
-	Nsq      NsqConfig      `yaml:"nsq"`
+	Nsq      NsqConfig      `yaml:"nsq" mapstructure:"nsq"`
 }
 
 var Paths []string = []string{

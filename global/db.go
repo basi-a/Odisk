@@ -16,9 +16,9 @@ func InitGorm() {
 	
 	switch Config.Database.Dbselect {
 	case "mariadb":
-		RetryWithExponentialBackoff(UseMysql, "Database Connection")
+		RetryWithExponentialBackoff(UseMysql, "Database Connection", 5)
 	case "pgsql":
-		RetryWithExponentialBackoff(UsePgsql, "Database Connection")
+		RetryWithExponentialBackoff(UsePgsql, "Database Connection", 5)
 	}
 }
 

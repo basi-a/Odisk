@@ -5,7 +5,7 @@
 - [x] GORM
 - [x] GIN
 - [x] MinIO
-- [ ] 日志收集
+- [x] Nsq  理论上应该一个服务程序对应一个，然后几个nsqlookupd做均衡负载和服务发现
 - [X] 数据库设计
 - [x] VUE
 - [x] https

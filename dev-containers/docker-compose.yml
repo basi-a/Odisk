@@ -15,12 +15,9 @@ x-hosts-common: &hosts-common
       - "server2:172.40.20.21"
       - "server3:172.40.20.22"
       - "server4:172.40.20.23"
-      - "nsqlookupd1:172.40.20.24"
-      - "nsqlookupd2:172.40.20.25"
-      - "nsqd1:172.40.20.26"
-      - "nsqd2:172.40.20.27"
-      - "nsqd3:172.40.20.28"
-      - "nsqadmin:172.40.20.29"
+      - "nsqlookupd:172.40.20.24"
+      - "nsqd:172.40.20.25"
+      - "nsqadmin:172.40.20.26"
       - "keepalived.vip:172.40.20.100"
 
 x-minio-common: &minio-common
@@ -87,23 +84,17 @@ x-server-common: &server-common
       condition: service_healthy
     redis:
       condition: service_healthy
+    nsqd:
+      condition: service_healthy
 
-x-nsqlookupd-common: &nsqlookupd-common
-  <<: *hosts-common
-  image: nsqio/nsq
-  command: /nsqlookupd
-  healthcheck:
-    test: ["CMD", 'pgrep', '-f', 'nsqlookupd']
-    interval: 1m
-    retries: 10
-    timeout: 5s
-x-nsqd-common: &nsqd-common
-  <<: *hosts-common
-  image: nsqio/nsq
-  command: /nsqd --broadcast-address=nsqd1 --lookupd-tcp-address=nsqlookupd1:4160 --lookupd-tcp-address=nsqlookupd2:4160
-  depends_on:
-    - nsqlookupd1
-    - nsqlookupd2
+# x-nsqlookupd-common: &nsqlookupd-common
+#   <<: *hosts-common
+#   image: nsqio/nsq
+#   healthcheck:
+#     test: ["CMD", 'pgrep', '-f', 'nsqlookupd']
+#     interval: 30s
+#     retries: 10
+#     timeout: 5s
 
 
 services:
@@ -111,7 +102,7 @@ services:
   #   <<: *hosts-common
   #   image: mariadb:latest
   #   hostname: mariadb
-  #   container_name: odisk_mariadb
+  #   container_name: odisk-mariadb
   #   restart: always
   #   ports:
   #     - "13306:3306"
@@ -138,7 +129,7 @@ services:
     <<: *hosts-common
     image: postgres:16.2-alpine
     hostname: postgres
-    container_name: odisk_postgres
+    container_name: odisk-postgres
     restart: always
     ports:
       - "15432:5432"
@@ -169,7 +160,7 @@ services:
     <<: *hosts-common
     image: adminer:latest
     hostname: adminer
-    container_name: odisk_adminer
+    container_name: odisk-adminer
     restart: always
     ports:
       - "28080:8080"
@@ -184,7 +175,7 @@ services:
     <<: *hosts-common
     image: redis:latest
     hostname: redis
-    container_name: odisk_redis
+    container_name: odisk-redis
     restart: always
     command: redis-server --requirepass TGVG8791HUBH --appendonly yes --bind 0.0.0.0
     ports:  
@@ -202,7 +193,7 @@ services:
     <<: *hosts-common
     image: nginx
     hostname: nginx
-    container_name: odisk_nginx
+    container_name: odisk-nginx
     ports:
       - "80:80"
       - "443:443"
@@ -221,7 +212,7 @@ services:
       - keepalived_haproxy2
     healthcheck:
       test: ["CMD", "curl", "-k", "-f", "https://localhost"]
-      interval: 10s
+      interval: 30s
       retries: 10
       timeout: 5s
     networks: 
@@ -230,7 +221,7 @@ services:
 
   keepalived_haproxy1:
     <<: *keepalived-haproxy-common
-    container_name: odisk_keepalived_haproxy1
+    container_name: odisk-keepalived_haproxy1
     volumes:
       - ./haproxy-keepalived/config/keepalived1.conf:/etc/keepalived/keepalived.conf
       - ./haproxy-keepalived/config/haproxy.cfg:/etc/haproxy/haproxy.cfg
@@ -240,7 +231,7 @@ services:
 
   keepalived_haproxy2:
     <<: *keepalived-haproxy-common
-    container_name: odisk_keepalived_haproxy2
+    container_name: odisk-keepalived_haproxy2
     volumes:
       - ./haproxy-keepalived/config/keepalived2.conf:/etc/keepalived/keepalived.conf
       - ./haproxy-keepalived/config/haproxy.cfg:/etc/haproxy/haproxy.cfg
@@ -251,7 +242,7 @@ services:
   minio1:
     <<: *minio-common
     hostname: minio1
-    container_name: odisk_minio1
+    container_name: odisk-minio1
     volumes:
       - ./minio/data1-1:/data1
       - ./minio/data1-2:/data2
@@ -261,7 +252,7 @@ services:
   minio2:
     <<: *minio-common
     hostname: minio2
-    container_name: odisk_minio2
+    container_name: odisk-minio2
     volumes:
       - ./minio/data2-1:/data1
       - ./minio/data2-2:/data2
@@ -271,7 +262,7 @@ services:
   minio3:
     <<: *minio-common
     hostname: minio3
-    container_name: odisk_minio3
+    container_name: odisk-minio3
     volumes:
       - ./minio/data3-1:/data1
       - ./minio/data3-2:/data2
@@ -281,7 +272,7 @@ services:
   minio4:
     <<: *minio-common
     hostname: minio4
-    container_name: odisk_minio4
+    container_name: odisk-minio4
     volumes:
       - ./minio/data4-1:/data1
       - ./minio/data4-2:/data2
@@ -292,77 +283,77 @@ services:
   server1:
     <<: *server-common
     hostname: server1
-    container_name: odisk_server1
+    container_name: odisk-server1
     networks: 
       app-network:
         ipv4_address: 172.40.20.20
   server2:
     <<: *server-common
     hostname: server2
-    container_name: odisk_server2
+    container_name: odisk-server2
     networks: 
       app-network:
         ipv4_address: 172.40.20.21
   server3:
     <<: *server-common
     hostname: server3
-    container_name: odisk_server3
+    container_name: odisk-server3
     networks: 
       app-network:
         ipv4_address: 172.40.20.22
   server4:
     <<: *server-common
     hostname: server4
-    container_name: odisk_server4
+    container_name: odisk-server4
     networks: 
       app-network:
         ipv4_address: 172.40.20.23
 
-
-
-  nsqlookupd1:
-    <<: *nsqlookupd-common
-    container_name: odisk_nsqlookupd1
+  nsqlookupd:
+    image: nsqio/nsq
+    container_name: odisk-nsqlookupd
+    command: /nsqlookupd --broadcast-address=172.40.20.24
+    ports:
+      - "4160"
+      - "4161"
+    healthcheck:
+      test: ["CMD", "pgrep", "-f", "nsqlookupd"]
+      interval: 1m30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
     networks: 
       app-network:
         ipv4_address: 172.40.20.24
-  nsqlookupd2:
-    <<: *nsqlookupd-common
-    container_name: odisk_nsqlookupd2
+  nsqd:
+    image: nsqio/nsq
+    container_name: odisk-nsqd
+    command: /nsqd --lookupd-tcp-address=172.40.20.24:4160 --broadcast-address=172.40.20.25
+    depends_on:
+      - nsqlookupd
+    ports:
+      - "4150"
+      - "4151"
+    healthcheck:
+      test: ["CMD", "pgrep", "-f", "nsqd"]
+      interval: 1m30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
     networks: 
       app-network:
         ipv4_address: 172.40.20.25
-
-  nsqd1:
-    <<: *nsqd-common
-    container_name: odisk_nsqd1
+  nsqadmin:
+    image: nsqio/nsq
+    container_name: odisk-nsqadmin
+    command: /nsqadmin --lookupd-http-address=172.40.20.24:4161
+    depends_on:
+      - nsqlookupd  
+    ports:
+      - "4171:4171"
     networks: 
       app-network:
         ipv4_address: 172.40.20.26
-  nsqd2:
-    <<: *nsqd-common
-    container_name: odisk_nsqd2
-    networks: 
-      app-network:
-        ipv4_address: 172.40.20.27
-  nsqd3:
-    <<: *nsqd-common
-    container_name: odisk_nsqd3
-    networks: 
-      app-network:
-        ipv4_address: 172.40.20.28
-
-  nsqadmin:
-    <<: *hosts-common
-    image: nsqio/nsq
-    container_name: odisk_nsqadmin
-    command: /nsqadmin --lookupd-http-address=nsqlookupd1:4161 --lookupd-http-address=nsqlookupd2:4161
-    depends_on:
-      - nsqlookupd1
-      - nsqlookupd2
-    networks: 
-      app-network:
-        ipv4_address: 172.40.20.29
 
 networks:
   app-network:

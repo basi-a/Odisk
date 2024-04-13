@@ -8,8 +8,8 @@ import (
 type RetryFunc func() error
 
 // RetryWithExponentialBackoff 接受一个重试函数并执行重试逻辑
-func RetryWithExponentialBackoff(fn RetryFunc, operationName string) {
-	maxRetryCount := 5
+func RetryWithExponentialBackoff(fn RetryFunc, operationName string, maxRetryCount int) {
+
 	for retryCount := 0; retryCount < maxRetryCount; retryCount++ {
 		err := fn()
 		if err != nil {

@@ -1,7 +1,7 @@
 server:
   mode: "release"
   port: ":7000"
-  secret: "!QASEE%^TGFVB&"  
+  secret: "!QASEE%^TGFVB&"
   ssl:
     privatekey: "/opt/cert/server.key"
     cert: "/opt/cert/server.crt"
@@ -15,22 +15,22 @@ server:
     username: "basi1024@163.com"
     password: "asgasga"
     template: "/opt/template/emailTemplate.html"
-  cros: 
+  cros:
     allowOrigins:
       - "https://127.0.0.1"
       - "https://localhost"
       - "https://dev.basi-a.top"
     allowCredentials: true
   admin:
-    useradmin: 
+    useradmin:
       username: "useradmin"
       password: "123456hello"
-      email:    "useradmin@example.com"
+      email: "useradmin@example.com"
     s3admin:
       username: "s3admin"
       password: "123456hello"
-      email:    "s3admin@example.com"
-      
+      email: "s3admin@example.com"
+
 redis:
   redisAddr: "redis"
   redisPort: "6379"
@@ -40,13 +40,13 @@ redis:
 database:
   dbselect: "pgsql"
   mariadb:
-    dbUsername: 
-    dbPassword: 
-    dbHost: 
-    dbPort: 
-    dbName: 
+    dbUsername:
+    dbPassword:
+    dbHost:
+    dbPort:
+    dbName:
     timeout:
-    dbPoolConns: 
+    dbPoolConns:
   pgsql:
     dbUsername: "odisk"
     dbPassword: "FTVGBUY7uvib89Y"
@@ -59,8 +59,23 @@ database:
 
 minio:
   endpoint: "keepalived.vip:9000"
-  accessKeyID: "minioadmin" 
+  accessKeyID: "minioadmin"
   secretAccessKey: "minioadmin"
   usessl: false
   bucketName: "odisk"
   location: "zh-private-1"
+
+nsq:
+  port:
+    nsqlookupd:
+      tcp: "4160"
+      http: "4161"
+    nsqd:
+      tcp: "4150"
+      http: "4151"
+  nsqlookupd:
+    - "nsqlookupd"
+  nsqd: "nsqd"
+  topics:
+    email:
+      - user-auth

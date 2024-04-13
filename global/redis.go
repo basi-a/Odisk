@@ -10,7 +10,7 @@ var Store redis.Store
 
 func InitRedis() {
 
-	RetryWithExponentialBackoff(UseRedis, "Redis Connection")
+	RetryWithExponentialBackoff(UseRedis, "Redis Connection", 5)
 
 }
 

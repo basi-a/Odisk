@@ -8,7 +8,7 @@ server:
   trusted_proxies:
     - "172.40.20.14" # HAproxy A
     - "172.40.20.15" # HAproxy B
-  cros: 
+  cros:
     allowOrigins:
       - "https://127.0.0.1"
       - "https://localhost"
@@ -22,14 +22,14 @@ server:
     password: "asgasga"
     template: "template/emailTemplate.html"
   admin:
-    useradmin: 
+    useradmin:
       username: "useradmin"
       password: "123456hello"
-      email:    "useradmin@example.com"
+      email: "useradmin@example.com"
     s3admin:
       username: "s3admin"
       password: "123456hello"
-      email:    "s3admin@example.com"
+      email: "s3admin@example.com"
 
 redis:
   redisAddr: "127.0.0.1"
@@ -37,17 +37,16 @@ redis:
   redisPassword: "TGVG8791HUBH"
   redisPoolConns: 2048
 
-
 database:
   dbselect: "pgsql"
   mariadb:
-    dbUsername: 
-    dbPassword: 
-    dbHost: 
-    dbPort: 
-    dbName: 
+    dbUsername:
+    dbPassword:
+    dbHost:
+    dbPort:
+    dbName:
     timeout:
-    dbPoolConns: 
+    dbPoolConns:
   pgsql:
     dbUsername: "odisk"
     dbPassword: "FTVGBUY7uvib89Y"
@@ -60,19 +59,23 @@ database:
 
 minio:
   endpoint: "172.40.20.16:9000"
-  accessKeyID: "minioadmin" 
+  accessKeyID: "minioadmin"
   secretAccessKey: "minioadmin"
   usessl: false
   bucketName: "odisk"
   location: "zh-private-1"
 
 nsq:
+  port:
+    nsqlookupd:
+      tcp: "4160"
+      http: "4161"
+    nsqd:
+      tcp: "4150"
+      http: "4151"
   nsqlookupd:
-    - "172.40.20.24:4161"
-    - "172.40.20.25:4161"
-  nsqd:
-    - "172.40.20.26:4150"
-    - "172.40.20.27:4150"
-    - "172.40.20.28:4150"
-  nsqadmin:
-    - "172.40.20.29:4171"
+    - "172.40.20.24"
+  nsqd: "172.40.20.25"
+  topics:
+    email:
+      - user-auth

@@ -1,10 +1,10 @@
 package global
 
 import (
+
 	"encoding/json"
 	"fmt"
 	"log"
-	// "math/rand"
 
 	"html/template"
 
@@ -12,11 +12,20 @@ import (
 	"github.com/wneessen/go-mail"
 )
 
+type Message struct {
+	MsgType string      `json:"msgtype"` // 消息类型（例如，“email”、“simple”）
+	Data    interface{} `json:"data"`    // 消息数据（根据类型而变化）
+}
+
 type EmailData struct {
 	Email   string             `json:"email"`
 	Subject string             `json:"subject"`
 	T       *template.Template `json:"t"`
 	Data    interface{}        `json:"data"`
+}
+
+type SimpleData struct {
+	Str string `json:"str"`
 }
 
 var Producer *nsq.Producer
@@ -43,9 +52,12 @@ func CreateNsqProducer() error {
 		Producer.Stop()
 		return err
 	}
+	simple := SimpleData{
+		Str: "topic created",
+	}
 
 	for topic := range Config.Nsq.Topics {
-		if err = NsqPublish(topic, "topic created"); err != nil {
+		if err = ProduceMsg(topic, "simple", simple); err != nil {
 			log.Println("Error publishing message:", err)
 			return err
 		}
@@ -69,7 +81,7 @@ func CreateAndStartNsqConsumer() error {
 				return err
 			}
 
-			consumer.AddConcurrentHandlers(nsq.HandlerFunc(msgHandler), 5)
+			consumer.AddConcurrentHandlers(nsq.HandlerFunc(ConsumeMsg), 2)
 
 			if err = consumer.ConnectToNSQLookupds(nsqlookupdAddrsWithPort); err != nil {
 				return err
@@ -82,32 +94,46 @@ func CreateAndStartNsqConsumer() error {
 	return nil
 }
 
-func NsqPublish(topic string, messgageBody interface{}) error {
-	body, err := json.Marshal(messgageBody)
-	if err != nil {
+func ConsumeMsg(m *nsq.Message) error {
+	// log.Println(string(m.Body))
+	msg := new(Message)
+	if err := json.Unmarshal(m.Body, &msg); err != nil {
 		return err
 	}
-	return Producer.Publish(topic, body)
+	switch msg.MsgType {
+	case "email":
+		 if emailData, ok := msg.Data.(EmailData); ok {
+			if err := sendEmail(emailData.Email, emailData.Subject, emailData.T, emailData.Data); err != nil {
+				return fmt.Errorf("send mail error: %v", err)
+			}
+		 }else {
+			return fmt.Errorf("type assertion failed")
+		}
+	case "simple":
+		if simpledata, ok := msg.Data.(SimpleData); ok {
+			log.Printf("simple msg: %s", simpledata.Str)
+		}else {
+			return fmt.Errorf("type assertion failed")
+		}
+	default:
+		return fmt.Errorf("unknown msg type: %s", msg.MsgType)
+	}
+	return nil
 }
 
-func msgHandler(message *nsq.Message) error {
-	var data interface{}
-	err := json.Unmarshal(message.Body, &data)
+func ProduceMsg(topic string, msgType string, data interface{}) error {
+	msg := Message{
+		MsgType: msgType,
+		Data:    data,
+	}
+	jsonData, err := json.Marshal(msg)
+	// log.Println(string(jsonData))
 	if err != nil {
 		return err
 	}
-
-	switch ty := data.(type) {
-	case EmailData:
-		if err := sendEmail(ty.Email, ty.Subject, ty.T, ty.Data); err != nil {
-			return err
-		}
-	case string:
-		log.Printf("Msg Body type: %v , data: %v", ty, data)
-	default:
-		return fmt.Errorf("unknow type: %v", ty)
+	if err := Producer.Publish(topic, jsonData); err != nil {
+		return err
 	}
-
 	return nil
 }
 

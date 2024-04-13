@@ -95,13 +95,14 @@ func EmailVerifyCode(c *gin.Context) {
 		Email: email,
 		Code:  code,
 	}
-	nsqBody := g.EmailData{
+	emailData := g.EmailData{
 		Email: 		email,
 		Subject: 	subject,
 		T:			g.EmailTemplate,
 		Data: 		data,
 	}
-	if err := g.NsqPublish("email", nsqBody); err != nil {
+
+	if err := g.ProduceMsg("email", "email", emailData); err != nil {
 		common.Error(c, "发送邮件错误", err)
 	} else {
 		SaveSession(c, "EmailVerifyCode", data)

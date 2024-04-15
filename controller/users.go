@@ -33,6 +33,7 @@ func RegisterUser(c *gin.Context) {
 	str := username + email + time.Now().String()
 	bucketName := md5.New().Sum([]byte(str))
 	if emailData, ok := value.(g.EmailData); ok && emailData.Code == code {
+		DelSession(c, "EmailVerifyCode")
 		user := m.Users{}
 		if username != "" && password != "" && email != "" {
 
@@ -50,7 +51,6 @@ func RegisterUser(c *gin.Context) {
 			}
 
 			// 创建存储桶
-			// log.Println(bucketName)
 			if err := g.MakeBucket(bucketmap.BucketName); err != nil {
 				common.Error(c, "创建存储桶失败", err)
 			} else {
@@ -62,6 +62,10 @@ func RegisterUser(c *gin.Context) {
 		common.Error(c, "邮箱验证失败", nil)
 	}
 
+}
+
+func ResetPassword(c *gin.Context)  {
+	
 }
 
 // POST /v1/login 登陆

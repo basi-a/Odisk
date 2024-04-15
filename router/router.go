@@ -19,6 +19,8 @@ func InitRouter() {
 	defer log.Println("Route initialization completed.")
 	trusted_proxies := g.Config.Server.TrustedProxies
 	mode := g.Config.Server.Mode
+	gin.DisableConsoleColor()
+
 	setMode(mode)
 
 	r := gin.Default()

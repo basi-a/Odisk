@@ -55,6 +55,8 @@ cd ../
 go mod tidy
 ./quick-fun.sh
 ```
+执行完了，记得把生成的证书添加进浏览器的证书管理的授权机构里面
+
 需要先有`docker`、`docker-compose`、`golang`, 没有的话需要先安装
 ```bash
 sudo pacman -S docker docker-compose go

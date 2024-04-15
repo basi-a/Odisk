@@ -46,7 +46,7 @@ func CreateNsqProducer() error {
 		log.Println("Error creating producer:", err)
 		return err
 	}
-
+	Producer.SetLoggerLevel(nsq.LogLevelWarning)
 	if err = Producer.Ping(); err != nil {
 		log.Println("Error pinging nsqd:", err)
 		Producer.Stop()
@@ -81,7 +81,7 @@ func CreateAndStartNsqConsumer() error {
 			if err != nil {
 				return err
 			}
-
+			consumer.SetLoggerLevel(nsq.LogLevelWarning)
 			consumer.AddConcurrentHandlers(nsq.HandlerFunc(ConsumeMsg), 5)
 
 			if err = consumer.ConnectToNSQLookupds(nsqlookupdAddrsWithPort); err != nil {

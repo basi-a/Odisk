@@ -1,20 +1,17 @@
 package model
+
 import (
 	g "odisk/global"
 )
 
-type EmailData struct {
-	Email 	string
-	Code	string
-}
+
 
 type UserInfo struct {
-	Email		string  `json:"email"`
-	UserName 	string `json:"username"`
+	Email    string `json:"email"`
+	UserName string `json:"username"`
 }
 
-
-func GetUserInfo(email string) (userInfo UserInfo, err error){
+func GetUserInfo(email string) (userInfo UserInfo, err error) {
 	db := g.DB
 	// if err := db.First(&info).Where("email = ?", email).Error; err != nil {
 	// 	return err
@@ -24,7 +21,7 @@ func GetUserInfo(email string) (userInfo UserInfo, err error){
 		return UserInfo{}, err
 	}
 	userInfo = UserInfo{
-		Email: user.Email,
+		Email:    user.Email,
 		UserName: user.UserName,
 	}
 	return

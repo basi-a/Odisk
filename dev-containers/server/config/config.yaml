@@ -9,11 +9,11 @@ server:
     - "keepalived_haproxy1"
     - "keepalived_haproxy2"
   mail:
-    sender-mail: "basi1024@163.com"
-    smtp-server: "smtp.example.com"
-    port: 25
-    username: "basi1024@163.com"
-    password: "asgasga"
+    senderMail: "3188765573@qq.com"
+    smtpServer: "smtp.qq.com"
+    port: 465
+    username: "3188765573@qq.com"
+    password: "azldfqilnmimdgic"
     template: "/opt/template/emailTemplate.html"
   cros:
     allowOrigins:

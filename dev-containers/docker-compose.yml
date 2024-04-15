@@ -68,7 +68,7 @@ x-server-common: &server-common
   command: /opt/odisk
   healthcheck:
     test: ["CMD", "curl", "-k","-f", "https://localhost:7000/ping"]
-    interval: 1m
+    interval: 5m
     retries: 10
     timeout: 5s
   depends_on:
@@ -86,15 +86,6 @@ x-server-common: &server-common
       condition: service_healthy
     nsqd:
       condition: service_healthy
-
-# x-nsqlookupd-common: &nsqlookupd-common
-#   <<: *hosts-common
-#   image: nsqio/nsq
-#   healthcheck:
-#     test: ["CMD", 'pgrep', '-f', 'nsqlookupd']
-#     interval: 30s
-#     retries: 10
-#     timeout: 5s
 
 
 services:
@@ -318,10 +309,10 @@ services:
       - "4161"
     healthcheck:
       test: ["CMD", "pgrep", "-f", "nsqlookupd"]
-      interval: 1m30s
+      interval: 30s
       timeout: 30s
       retries: 5
-      start_period: 30s
+      start_period: 10s
     networks: 
       app-network:
         ipv4_address: 172.40.20.24
@@ -336,10 +327,10 @@ services:
       - "4151"
     healthcheck:
       test: ["CMD", "pgrep", "-f", "nsqd"]
-      interval: 1m30s
+      interval: 30s
       timeout: 30s
       retries: 5
-      start_period: 30s
+      start_period: 10s
     networks: 
       app-network:
         ipv4_address: 172.40.20.25

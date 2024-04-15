@@ -2,6 +2,8 @@ package controller
 
 import (
 	"crypto/md5"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"odisk/common"
 	g "odisk/global"
@@ -28,10 +30,9 @@ func RegisterUser(c *gin.Context) {
 	// 验证邮箱
 	value := ReadSession(c, "EmailVerifyCode")
 	// 生成存储桶名字
-	// bucketName := base64.RawStdEncoding.EncodeToString([]byte(username + email + code))
 	str := username + email + time.Now().String()
 	bucketName := md5.New().Sum([]byte(str))
-	if emailData, ok := value.(m.EmailData); ok && emailData.Code == code {
+	if emailData, ok := value.(g.EmailData); ok && emailData.Code == code {
 		user := m.Users{}
 		if username != "" && password != "" && email != "" {
 
@@ -91,18 +92,20 @@ func EmailVerifyCode(c *gin.Context) {
 	code := u.GenerateVerificationCode(6)
 	subject := "Verify your email address"
 
-	data := m.EmailData{
+	data := g.EmailData{
 		Email: email,
 		Code:  code,
 	}
-	emailData := g.EmailData{
-		Email: 		email,
-		Subject: 	subject,
-		T:			g.EmailTemplate,
-		Data: 		data,
+	jsonData, _ := json.Marshal(data)
+	base64str := base64.RawStdEncoding.EncodeToString(jsonData)
+	sendEmailData := g.SendEmailData{
+		Email:      email,
+		Subject:    subject,
+		DataBase64: base64str,
 	}
 
-	if err := g.ProduceMsg("email", "email", emailData); err != nil {
+	jsonData, _ = json.Marshal(sendEmailData)
+	if err := g.ProduceMsg("email", "email", jsonData); err != nil {
 		common.Error(c, "发送邮件错误", err)
 	} else {
 		SaveSession(c, "EmailVerifyCode", data)

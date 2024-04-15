@@ -15,11 +15,11 @@ server:
       - "https://dev.basi-a.top"
     allowCredentials: true
   mail:
-    sender-mail: "basi1024@163.com"
-    smtp-server: "smtp.example.com"
-    port: 25
-    username: "basi1024@163.com"
-    password: "asgasga"
+    senderMail: "3188765573@qq.com"
+    smtpServer: "smtp.qq.com"
+    port: 465
+    username: "basi-a@foxmail.com"
+    password: "azldfqilnmimdgic"
     template: "template/emailTemplate.html"
   admin:
     useradmin:

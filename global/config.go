@@ -38,8 +38,8 @@ type CrosConfig struct {
 }
 
 type MailConfig struct {
-	SerderMail string `yaml:"sender-mail"`
-	SmtpServer string `yaml:"smtp-server"`
+	SenderMail string `yaml:"senderMail"`
+	SmtpServer string `yaml:"smtpServer"`
 	Port       int    `yaml:"port"`
 	UserName   string `yaml:"username"`
 	Password   string `yaml:"password"`
@@ -148,5 +148,6 @@ func InitConfig() {
 	if err := viper.Unmarshal(&Config); err != nil {
 		log.Fatalf("Error unmarshalling config: %v", err)
 	}
+	
 
 }

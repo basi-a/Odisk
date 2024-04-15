@@ -1,27 +1,27 @@
 package global
 
 import (
-
+	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"log"
-
-	"html/template"
-
 	"github.com/nsqio/go-nsq"
-	"github.com/wneessen/go-mail"
+	"gopkg.in/gomail.v2"
 )
-
+type EmailData struct {
+	Email string `json:"email"`
+	Code  string `json:"code"`
+}
 type Message struct {
-	MsgType string      `json:"msgtype"` // 消息类型（例如，“email”、“simple”）
-	Data    interface{} `json:"data"`    // 消息数据（根据类型而变化）
+	MsgType    string `json:"msgtype"` // 消息类型（例如，“email”、“simple”）
+	DataBase64 string `json:"data"`
 }
 
-type EmailData struct {
-	Email   string             `json:"email"`
-	Subject string             `json:"subject"`
-	T       *template.Template `json:"t"`
-	Data    interface{}        `json:"data"`
+type SendEmailData struct {
+	Email      string `json:"email"`
+	Subject    string `json:"subject"`
+	DataBase64 string `json:"data"`
 }
 
 type SimpleData struct {
@@ -55,9 +55,9 @@ func CreateNsqProducer() error {
 	simple := SimpleData{
 		Str: "topic created",
 	}
-
+	jsonData, _ := json.Marshal(simple)
 	for topic := range Config.Nsq.Topics {
-		if err = ProduceMsg(topic, "simple", simple); err != nil {
+		if err = ProduceMsg(topic, "simple", jsonData); err != nil {
 			log.Println("Error publishing message:", err)
 			return err
 		}
@@ -72,6 +72,7 @@ func CreateAndStartNsqConsumer() error {
 	for _, v := range Config.Nsq.Nsqlookupd {
 		nsqlookupdAddrsWithPort = append(nsqlookupdAddrsWithPort, v+":"+Config.Nsq.Port.Nsqlookupd.HTTP)
 	}
+
 	consumers := make([]*nsq.Consumer, 0)
 	for topic, channals := range Config.Nsq.Topics {
 
@@ -81,7 +82,7 @@ func CreateAndStartNsqConsumer() error {
 				return err
 			}
 
-			consumer.AddConcurrentHandlers(nsq.HandlerFunc(ConsumeMsg), 2)
+			consumer.AddConcurrentHandlers(nsq.HandlerFunc(ConsumeMsg), 5)
 
 			if err = consumer.ConnectToNSQLookupds(nsqlookupdAddrsWithPort); err != nil {
 				return err
@@ -102,32 +103,46 @@ func ConsumeMsg(m *nsq.Message) error {
 	}
 	switch msg.MsgType {
 	case "email":
-		 if emailData, ok := msg.Data.(EmailData); ok {
-			if err := sendEmail(emailData.Email, emailData.Subject, emailData.T, emailData.Data); err != nil {
-				return fmt.Errorf("send mail error: %v", err)
-			}
-		 }else {
-			return fmt.Errorf("type assertion failed")
+		data, err := base64.RawStdEncoding.DecodeString(msg.DataBase64)
+		if err != nil {
+			return nil
 		}
+		var sendEmailData SendEmailData
+		if err := json.Unmarshal(data, &sendEmailData); err != nil {
+			return fmt.Errorf("unmarshal err: %s \n| %s", err, string(data))
+		}
+
+		if err := sendEmail(sendEmailData.Email, sendEmailData.Subject, sendEmailData.DataBase64); err != nil {
+			return fmt.Errorf("send mail error:  %s\n| %s", err, string(data))
+		}
+
+		m.Finish()
 	case "simple":
-		if simpledata, ok := msg.Data.(SimpleData); ok {
-			log.Printf("simple msg: %s", simpledata.Str)
-		}else {
-			return fmt.Errorf("type assertion failed")
+		data, err := base64.RawStdEncoding.DecodeString(msg.DataBase64)
+		if err != nil {
+			return nil
 		}
+		var simpleData SimpleData
+		if err := json.Unmarshal(data, &simpleData); err != nil {
+			return err
+		}
+		fmt.Println(simpleData.Str)
+
+		m.Finish()
 	default:
 		return fmt.Errorf("unknown msg type: %s", msg.MsgType)
 	}
 	return nil
 }
 
-func ProduceMsg(topic string, msgType string, data interface{}) error {
+func ProduceMsg(topic string, msgType string, data []byte) error {
+
 	msg := Message{
-		MsgType: msgType,
-		Data:    data,
+		MsgType:    msgType,
+		DataBase64: base64.RawStdEncoding.EncodeToString(data),
 	}
 	jsonData, err := json.Marshal(msg)
-	// log.Println(string(jsonData))
+
 	if err != nil {
 		return err
 	}
@@ -147,27 +162,33 @@ data: 模板所需的数据。
 返回值：
 error: 如果在发送邮件过程中发生错误，则返回该错误；否则返回nil。
 */
-func sendEmail(email string, subject string, t *template.Template, data interface{}) error {
-	msg := mail.NewMsg()
-	if err := msg.From(Config.Server.Mail.SerderMail); err != nil {
-		return err
-	}
-	if err := msg.To(email); err != nil {
-		return err
-	}
-	// 设置邮件的主题
-	msg.Subject(subject)
-	// 使用HTML模板和数据设置邮件正文
-	msg.SetBodyHTMLTemplate(t, data)
 
-	client, err := mail.NewClient(Config.Server.Mail.SmtpServer,
-		mail.WithPort(Config.Server.Mail.Port),
-		mail.WithSMTPAuth(mail.SMTPAuthPlain),
-		mail.WithUsername(Config.Server.Mail.UserName),
-		mail.WithPassword(Config.Server.Mail.Password))
+func sendEmail(email string, subject string, base64data string) error {
+	config := Config.Server.Mail
+	jsonData, err := base64.RawStdEncoding.DecodeString(base64data)
 	if err != nil {
 		return err
 	}
-	client.DialAndSend(msg)
+	// return fmt.Errorf(string(jsonData))
+	var htmlContent bytes.Buffer
+
+	data := new(EmailData)
+	if err := json.Unmarshal(jsonData, &data); err != nil {
+		return err
+	}
+	if err := EmailTemplate.Execute(&htmlContent, data); err != nil {
+		return err
+	}
+	msg := gomail.NewMessage()
+	msg.SetHeader("From", config.SenderMail)
+	msg.SetHeader("To", email)
+	msg.SetHeader("Subject", subject)
+	msg.SetBody("text/html", htmlContent.String())
+
+	dialer := gomail.NewDialer(config.SmtpServer, config.Port, config.UserName, config.Password)
+	if err := dialer.DialAndSend(msg); err != nil {
+		return fmt.Errorf("DialAndSend err: %s", err)
+	}
+
 	return nil
 }

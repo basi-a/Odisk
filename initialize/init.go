@@ -1,7 +1,7 @@
 package initialize
 
 import (
-	"encoding/gob"
+
 	"log"
 	g "odisk/global"
 	m "odisk/model"
@@ -11,7 +11,7 @@ import (
 func Initialize() {
 	log.Println("The application system is initializing")
 	defer log.Println("Application initialization completed.")
-	gob.Register(m.UserInfo{})
+	InitGob()
 	g.InitConfig()
 	g.InitTemplate()
 	

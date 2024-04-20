@@ -18,7 +18,7 @@
 ```yml
 x-hosts-common: &hosts-common
   extra_hosts:
-      - "mariadb:172.40.20.10"
+      - "db:172.40.20.10"
       - "adminer:172.40.20.11"
       - "redis:172.40.20.12"
       - "nginx:172.40.20.13"
@@ -32,7 +32,9 @@ x-hosts-common: &hosts-common
       - "server2:172.40.20.21"
       - "server3:172.40.20.22"
       - "server4:172.40.20.23"
-      - "keepalived.vip:172.40.20.100"
+      - "nsqlookupd:172.40.20.24"
+      - "nsqd:172.40.20.25"
+      - "nsqadmin:172.40.20.26"
 ```
 # 接口文档
 [Apifox 文档分享 ](https://apifox.com/apidoc/shared-60f72b42-a39e-4e18-85b5-a0c4e84e415d)

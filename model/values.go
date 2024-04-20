@@ -1,28 +1,24 @@
 package model
 
-import (
-	g "odisk/global"
-)
-
-
-
 type UserInfo struct {
-	Email    string `json:"email"`
-	UserName string `json:"username"`
+	Email      string `json:"email"`
+	UserName   string `json:"username"`
+	Permission string `json:"permission"`
 }
 
 func GetUserInfo(email string) (userInfo UserInfo, err error) {
-	db := g.DB
-	// if err := db.First(&info).Where("email = ?", email).Error; err != nil {
-	// 	return err
-	// }
-	user := Users{}
-	if err := db.First(&user).Select("userName").Where("email = ?", email).Error; err != nil {
+
+	var user Users
+
+	if user, err = user.GetUser(email); err != nil {
 		return UserInfo{}, err
 	}
+
 	userInfo = UserInfo{
-		Email:    user.Email,
-		UserName: user.UserName,
+		Email:      user.Email,
+		UserName:   user.UserName,
+		Permission: user.Permission,
 	}
+
 	return
 }

@@ -5,7 +5,3 @@ type S3Request struct {
 	ObjectName 	string  `json:"objectName" binding:"omitempty,required"`
 	PartNumbers []int	`json:"partNumbers" binding:"dive,omitempty,required,partNumber"`
 }
-
-type UserRequest struct {
-	
-}

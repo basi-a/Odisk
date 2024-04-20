@@ -61,6 +61,7 @@ func InitRouter() {
 		v1.POST("/register", controller.RegisterUser)
 		v1.POST("/login", controller.Login)
 		v1.POST("/emailVerify", controller.EmailVerifyCode)
+		v1.POST("/reset", controller.ResetPassword)
 
 		authedGroup := v1.Group("/", middleware.SessionMiddleware())
 		{

@@ -1,6 +1,7 @@
 package model
 
 import (
+
 	"log"
 	g "odisk/global"
 
@@ -13,7 +14,7 @@ type Users struct {
 	UserName   string `json:"username"`
 	Password   string
 	Email      string `json:"email" gorm:"uniqueIndex"`
-	Permission string `json:"Permission" gorm:"default:general"` //general/userAdmin/s3Admin
+	Permission string `json:"permission" gorm:"default:general"` //general/userAdmin/s3Admin
 }
 
 func AutoMigrateUser() {
@@ -48,18 +49,18 @@ func AutoMigrateUser() {
 }
 
 // add a user with name password email
-func (users *Users) AddUser(username, password, email string, permission *string) (userID *uint, err error) {
+func (users *Users) AddUser(username, password, email string, permission *string) (userID uint, err error) {
 	db := g.DB
 	// 检查用户是否已存在
 	var existingUser Users
 
 	if err := db.Where("email = ?", email).First(&existingUser).Error; err == nil {
-		return &existingUser.ID, nil // 用户已存在，返回现有用户的 ID
+		return existingUser.ID, nil // 用户已存在，返回现有用户的 ID
 	}
 
 	hashedPassword, err := hashPassword(password)
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
 
 	user := Users{
@@ -74,10 +75,10 @@ func (users *Users) AddUser(username, password, email string, permission *string
 
 	// 创建新用户
 	if err := db.Create(&user).Error; err != nil {
-		return nil, err
+		return 0, err
 	}
 
-	return &user.ID, nil
+	return user.ID, nil
 }
 
 // del a user by email
@@ -95,18 +96,25 @@ func (users *Users) DelUser(email string) error {
 func (users *Users) UpdateUser(username, password, email string) error {
 	db := g.DB
 	var err error
+
+	// Prepare updates map with non-empty fields
+	updates := make(map[string]string, 0)
+	if username != "" {
+		updates["UserName"] = username
+	}
 	if password != "" {
 		password, err = hashPassword(password)
 		if err != nil {
 			return err
 		}
+		updates["Password"] = password
 	}
-	user := Users{
-		UserName: username,
-		Password: password,
-		Email:    email,
+	if email != "" {
+		updates["Email"] = email
 	}
-	err = db.Model(&Users{}).Where("email = ?", email).Updates(user).Error
+
+	// Update user with non-empty fields
+	err = db.Model(&Users{}).Where("email = ?", email).Updates(updates).Error
 	if err != nil {
 		return err
 	}
@@ -126,15 +134,15 @@ func (users *Users) ListUser() ([]Users, error) {
 }
 
 // get a user by email
-func (users *Users) GetUser(email string) (*Users, error) {
+func (users *Users) GetUser(email string) (Users, error) {
 	db := g.DB
 
 	var user Users
 	err := db.Where("email = ?", email).First(&user).Error
 	if err != nil {
-		return nil, err
+		return Users{}, err
 	}
-	return &user, nil
+	return user, nil
 }
 
 func hashPassword(password string) (string, error) {

@@ -8,5 +8,6 @@ sudo rm -rf log
 sudo rm -rf nsq
 sudo rm server/odisk
 sudo rm -rf server/cert
+sudo rm -rf server/template
 sudo rm -rf haproxy-keepalived/cert
 sudo rm -rf nginx/cert

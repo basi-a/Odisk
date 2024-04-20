@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"log"
 	"odisk/common"
 	g "odisk/global"
 	m "odisk/model"
@@ -31,7 +32,8 @@ func RegisterUser(c *gin.Context) {
 	value := ReadSession(c, "EmailVerifyCode")
 	// 生成存储桶名字
 	str := username + email + time.Now().String()
-	bucketName := md5.New().Sum([]byte(str))
+	bucketName := fmt.Sprintf("%x", md5.Sum([]byte(str)))
+	log.Println(bucketName)
 	if emailData, ok := value.(g.EmailData); ok && emailData.Code == code {
 		DelSession(c, "EmailVerifyCode")
 		user := m.Users{}
@@ -39,23 +41,26 @@ func RegisterUser(c *gin.Context) {
 
 			userID, err := user.AddUser(username, password, email, nil)
 			bucketmap := m.Bucketmap{
-				UserID:     *userID,
-				BucketName: string(bucketName),
+				UserID:     userID,
+				BucketName: bucketName,
 			}
 			if err != nil {
 				common.Error(c, "注册失败, 请检查是否邮箱已使用, 或输入有误", err)
+				return
 			} else if err := bucketmap.SaveMap(); err != nil {
 				common.Error(c, "用户与存储桶对应关系记录失败", err)
+				return
 			} else {
 				common.Success(c, fmt.Sprintf("注册成功, 用户名: %s", username))
+				// 创建存储桶
+				if err := g.MakeBucket(bucketmap.BucketName); err != nil {
+					log.Println("创建存储桶失败", err)
+					return
+				} else {
+					log.Println("存储桶创建成功")
+				}
 			}
 
-			// 创建存储桶
-			if err := g.MakeBucket(bucketmap.BucketName); err != nil {
-				common.Error(c, "创建存储桶失败", err)
-			} else {
-				common.Success(c, "存储桶创建成功")
-			}
 		}
 
 	} else {
@@ -64,8 +69,20 @@ func RegisterUser(c *gin.Context) {
 
 }
 
-func ResetPassword(c *gin.Context)  {
-	
+// POST /v1/reset
+func ResetPassword(c *gin.Context) {
+	password := c.PostForm("password")
+	email := c.PostForm("email")
+	code := c.PostForm("code")
+
+	value := ReadSession(c, "EmailVerifyCode")
+	if emailData, ok := value.(g.EmailData); ok && emailData.Code == code {
+		DelSession(c, "EmailVerifyCode")
+		user := m.Users{}
+		if err := user.UpdateUser("", password, email); err != nil {
+			common.Error(c, "更新失败", err)
+		}
+	}
 }
 
 // POST /v1/login 登陆
@@ -80,6 +97,7 @@ func Login(c *gin.Context) {
 	}
 	if ok && err == nil {
 		userInfo, err := m.GetUserInfo(email)
+		log.Println(userInfo)
 		if err != nil {
 			common.Error(c, "获取信息失败", err)
 		} else {
@@ -90,7 +108,7 @@ func Login(c *gin.Context) {
 	}
 }
 
-// POST /v1/emailVerify
+// POST /v1/emailVerify 发送邮件验证码
 func EmailVerifyCode(c *gin.Context) {
 	email := c.PostForm("email")
 	code := u.GenerateVerificationCode(6)
@@ -141,9 +159,10 @@ func UserInfo(c *gin.Context) {
 func GetUserInfo(c *gin.Context) {
 
 	value := ReadSession(c, "userInfo")
+	log.Println(value)
 	// 尝试将读取的值断言为 m.UserInfo 类型
 	if userInfo, ok := value.(m.UserInfo); ok && userInfo.Email != "" {
-		common.Success(c, "获取成功", fmt.Sprintf("username: %s", userInfo.UserName))
+		common.Success(c, "获取成功", userInfo)
 	} else {
 		common.Error(c, "获取信息失败", nil)
 	}

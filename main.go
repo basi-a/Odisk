@@ -88,10 +88,12 @@ func shutdownHandler(ctx context.Context) {
 
 	g.Producer.Stop()
 
-	for _, consumer := range g.Consumers {
-		consumer.Stop()
+	// for _, consumer := range g.Consumers {
+	// 	consumer.Stop()
+	// }
+	for _, v := range g.Consumers {
+		v.Stop()
 	}
-
 	// Gracefully shut down the server
 	if err := srv.Shutdown(ctx); err != nil {
 		log.Fatal("Server Shutdown:", err)

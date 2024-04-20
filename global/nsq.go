@@ -29,7 +29,7 @@ type SimpleData struct {
 }
 
 var Producer *nsq.Producer
-var Consumers []*nsq.Consumer
+var Consumers map[int]*nsq.Consumer
 
 func InitNsq() {
 	defer log.Println("nsq producer and consumer initialization completed.")
@@ -73,7 +73,9 @@ func CreateAndStartNsqConsumer() error {
 		nsqlookupdAddrsWithPort = append(nsqlookupdAddrsWithPort, v+":"+Config.Nsq.Port.Nsqlookupd.HTTP)
 	}
 
-	consumers := make([]*nsq.Consumer, 0)
+	// consumers := make([]*nsq.Consumer, 0)
+	consumers := make(map[int]*nsq.Consumer, 0)
+	count := -1
 	for topic, channals := range Config.Nsq.Topics {
 
 		for _, channal := range channals {
@@ -82,13 +84,15 @@ func CreateAndStartNsqConsumer() error {
 				return err
 			}
 			consumer.SetLoggerLevel(nsq.LogLevelWarning)
+
 			consumer.AddConcurrentHandlers(nsq.HandlerFunc(ConsumeMsg), 5)
 
 			if err = consumer.ConnectToNSQLookupds(nsqlookupdAddrsWithPort); err != nil {
 				return err
 			}
-
-			consumers = append(consumers, consumer)
+			count++
+			// consumers = append(consumers, consumer)
+			consumers[count]=consumer
 		}
 	}
 	Consumers = consumers

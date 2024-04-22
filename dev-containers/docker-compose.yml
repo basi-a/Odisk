@@ -1,5 +1,5 @@
 # Settings and configurations that are common for all containers
-x-hosts-common: &hosts-common
+x-common: &common
   extra_hosts:
       - "db:172.40.20.10"
       - "adminer:172.40.20.11"
@@ -19,9 +19,11 @@ x-hosts-common: &hosts-common
       - "nsqd:172.40.20.25"
       - "nsqadmin:172.40.20.26"
       - "keepalived.vip:172.40.20.100"
-
+  volumes: 
+    - /etc/localtime:/etc/localtime:ro
+  restart: always
 x-minio-common: &minio-common
-  <<: *hosts-common
+  <<: *common
   image: quay.io/minio/minio:RELEASE.2024-01-13T07-53-03Z
   command: server --console-address ":9001" http://minio{1...4}/data{1...2}
   expose:
@@ -38,7 +40,7 @@ x-minio-common: &minio-common
     timeout: 5s
 
 x-keepalived-haproxy-common: &keepalived-haproxy-common
-  <<: *hosts-common
+  <<: *common
   build:
     context: ./haproxy-keepalived/.
   image: odisk/keepalived-haproxy:latest
@@ -56,7 +58,7 @@ x-keepalived-haproxy-common: &keepalived-haproxy-common
   privileged: true  
 
 x-server-common: &server-common
-  <<: *hosts-common
+  <<: *common
   build:
     context: ./server/.
   image: odisk/server:latest
@@ -90,7 +92,7 @@ x-server-common: &server-common
 
 services:
   # db:
-  #   <<: *hosts-common
+  #   <<: *common
   #   image: mariadb:latest
   #   hostname: mariadb
   #   container_name: odisk-mariadb
@@ -117,11 +119,11 @@ services:
   #     app-network:
   #       ipv4_address: 172.40.20.10
   db:
-    <<: *hosts-common
+    <<: *common
     image: postgres:16.2-alpine
     hostname: postgres
     container_name: odisk-postgres
-    restart: always
+   
     ports:
       - "15432:5432"
     # set shared memory limit when using docker-compose
@@ -148,11 +150,11 @@ services:
         ipv4_address: 172.40.20.10
 
   adminer:
-    <<: *hosts-common
+    <<: *common
     image: adminer:latest
     hostname: adminer
     container_name: odisk-adminer
-    restart: always
+
     ports:
       - "28080:8080"
     depends_on:
@@ -163,11 +165,11 @@ services:
         ipv4_address: 172.40.20.11
 
   redis:
-    <<: *hosts-common
+    <<: *common
     image: redis:latest
     hostname: redis
     container_name: odisk-redis
-    restart: always
+
     command: redis-server --requirepass TGVG8791HUBH --appendonly yes --bind 0.0.0.0
     ports:  
       - "16379:6379"
@@ -181,7 +183,7 @@ services:
         ipv4_address: 172.40.20.12
 
   nginx:
-    <<: *hosts-common
+    <<: *common
     image: nginx
     hostname: nginx
     container_name: odisk-nginx
@@ -195,7 +197,7 @@ services:
       - ./nginx/cert:/opt/cert
 
     command: ["/bin/bash", "-c", "chown -R nginx:nginx /opt/dist /opt/cert && nginx -g 'daemon off;'"]
-    restart: always
+
     depends_on:
       - db 
       - redis

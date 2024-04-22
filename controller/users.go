@@ -78,12 +78,14 @@ func ResetPassword(c *gin.Context) {
 	value := ReadSession(c, "EmailVerifyCode")
 	if emailData, ok := value.(g.EmailData); ok && emailData.Code == code {
 		DelSession(c, "EmailVerifyCode")
-		user := m.Users{}
-		if err := user.UpdateUser("", password, email); err != nil {
+		
+		if err := m.UpdateUser("", password, email); err != nil {
 			common.Error(c, "更新失败", err)
 		}
 	}
 }
+
+
 
 // POST /v1/login 登陆
 func Login(c *gin.Context) {
@@ -147,19 +149,19 @@ func DelUser(c *gin.Context) {
 
 // POST /v1/users/update auth 组
 func UpdateUser(c *gin.Context) {
-
+	
 }
 
-// GET /v1/users/info auth 组
-func UserInfo(c *gin.Context) {
-
+// POST /v1/users/info auth 组
+func UsersInfo(c *gin.Context) {
+	
 }
 
-// GET /userInfo
+// GET /v1/userInfo
 func GetUserInfo(c *gin.Context) {
 
 	value := ReadSession(c, "userInfo")
-	log.Println(value)
+	// log.Println(value)
 	// 尝试将读取的值断言为 m.UserInfo 类型
 	if userInfo, ok := value.(m.UserInfo); ok && userInfo.Email != "" {
 		common.Success(c, "获取成功", userInfo)

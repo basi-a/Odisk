@@ -1,7 +1,6 @@
 package model
 
 import (
-
 	"log"
 	g "odisk/global"
 
@@ -93,7 +92,7 @@ func (users *Users) DelUser(email string) error {
 }
 
 // update user by email with name password and email
-func (users *Users) UpdateUser(username, password, email string) error {
+func UpdateUser(username, password, email string) error {
 	db := g.DB
 	var err error
 
@@ -134,15 +133,15 @@ func (users *Users) ListUser() ([]Users, error) {
 }
 
 // get a user by email
-func (users *Users) GetUser(email string) (Users, error) {
+func (user *Users) GetUser(email string) error {
 	db := g.DB
 
-	var user Users
+	// var user Users
 	err := db.Where("email = ?", email).First(&user).Error
 	if err != nil {
-		return Users{}, err
+		return err
 	}
-	return user, nil
+	return nil
 }
 
 func hashPassword(password string) (string, error) {

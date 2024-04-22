@@ -12,6 +12,8 @@ server:
     allowOrigins:
       - "https://127.0.0.1"
       - "https://localhost"
+      - "https://127.0.0.1:5173"
+      - "https://localhost:5173"
       - "https://dev.basi-a.top"
     allowCredentials: true
   mail:
@@ -30,6 +32,7 @@ server:
       username: "s3admin"
       password: "123456hello"
       email: "s3admin@example.com"
+  
 
 redis:
   redisAddr: "127.0.0.1"

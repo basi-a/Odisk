@@ -93,7 +93,7 @@ type MinioConfig struct {
 	AccessKeyID     string `yaml:"accessKeyID"`
 	SecretAccessKey string `yaml:"secretAccessKey"`
 	UseSSL          bool   `yaml:"usessl"`
-	BucketName      string `yaml:"bucketName"`
+	// BucketName      string `yaml:"bucketName"`
 	Location        string `yaml:"location"`
 }
 type NsqConfig struct {

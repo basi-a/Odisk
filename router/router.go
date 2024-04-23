@@ -89,11 +89,11 @@ func InitRouter() {
 					uploadGroup.POST("/abort", controller.MultipartUploadAbort)
 					uploadGroup.GET("/tasklist", controller.UploadTaskList)
 				}
-				s3Group.GET("/download", controller.DownloadFile)
-				s3Group.DELETE("/delate", controller.DelFile)
-				s3Group.POST("/rename", controller.RenameFile)
-				s3Group.POST("/move", controller.MoveFile)
-				s3Group.GET("/list", controller.FileList)
+				s3Group.POST("/download", controller.DownloadFile)
+				s3Group.DELETE("/delate", controller.DeleteFile)
+				s3Group.POST("/mv", controller.MoveFile)
+				s3Group.POST("/mkdir", controller.Mkdir)
+				s3Group.POST("/list", controller.FileList)
 			}
 
 		}

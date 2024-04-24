@@ -2,6 +2,7 @@ package controller
 
 import (
 	"fmt"
+	"log"
 
 	"net/url"
 	"sort"
@@ -29,8 +30,8 @@ const (
 // POST /s3/upload/small
 func UploadFile(c *gin.Context) {
 	type JsonData struct {
-		ObjectName	string	`json:"objectname"`
-		BucketName 	string 	`json:"bucketname"`
+		ObjectName string `json:"objectname"`
+		BucketName string `json:"bucketname"`
 	}
 	data := JsonData{}
 	if err := c.ShouldBindJSON(&data); err != nil {
@@ -133,8 +134,8 @@ func UploadTaskList(c *gin.Context) {
 // POST /s3/download
 func DownloadFile(c *gin.Context) {
 	type JsonData struct {
-		ObjectName	string	`json:"objectname"`
-		BucketName 	string 	`json:"bucketname"`
+		ObjectName string `json:"objectname"`
+		BucketName string `json:"bucketname"`
 	}
 	data := JsonData{}
 	if err := c.ShouldBindJSON(&data); err != nil {
@@ -154,11 +155,10 @@ func DownloadFile(c *gin.Context) {
 
 // DELETE /s3/delate
 func DeleteFile(c *gin.Context) {
-	// objectName := c.PostForm("objectname")
-	// bucketName := c.PostForm("bucketname")
+
 	type JsonData struct {
-		ObjectName	string	`json:"objectname"`
-		BucketName 	string 	`json:"bucketname"`
+		ObjectName string `json:"objectname"`
+		BucketName string `json:"bucketname"`
 	}
 	data := JsonData{}
 	if err := c.ShouldBindJSON(&data); err != nil {
@@ -176,13 +176,11 @@ func DeleteFile(c *gin.Context) {
 // POST /s3/mv
 func MoveFile(c *gin.Context) {
 	type JsonData struct {
-		SrcBucketName	string	`json:"srcbucketname"`
-		SrcObjectName	string	`json:"srcobjectname"`
-		DestObjectName	string	`json:"destobjectName"`
+		SrcBucketName  string `json:"srcbucketname"`
+		SrcObjectName  string `json:"srcobjectname"`
+		DestObjectName string `json:"destobjectName"`
 	}
-	// data.SrcObjectName := c.PostForm("current_objectname")
-	// data.SrcBucketName := c.PostForm("current_bucketname")
-	// newObjectName := c.PostForm("new_objectname")
+
 	data := JsonData{}
 	if err := c.ShouldBindJSON(&data); err != nil {
 		common.Error(c, "绑定失败", err)
@@ -190,6 +188,21 @@ func MoveFile(c *gin.Context) {
 	_, err := g.S3core.Client.StatObject(g.S3Ctx, data.SrcBucketName, data.SrcObjectName, minio.StatObjectOptions{})
 	if err != nil {
 		common.Error(c, "源文件不存在或无法访问", err)
+		return
+	}
+	// Split the destination object name into segments
+	destSegments := strings.Split(data.DestObjectName, "/")
+
+	// Check if the target directory exists
+	parentDir := strings.Join(destSegments[:len(destSegments)-1], "/")
+	if !strings.HasSuffix(parentDir, "/") {
+		parentDir += "/" // Ensure each directory segment ends with a slash
+	}
+
+	_, err = g.S3core.Client.StatObject(g.S3Ctx, data.SrcBucketName, parentDir, minio.StatObjectOptions{})
+	if err != nil {
+		// Target directory doesn't exist, return an error message
+		common.Error(c, "目标目录:"+parentDir+" , 不存在, 请先创建", err)
 		return
 	}
 	copyDest := minio.CopyDestOptions{
@@ -218,11 +231,10 @@ func MoveFile(c *gin.Context) {
 
 // POST /s3/mkdir
 func Mkdir(c *gin.Context) {
-	// bucketName := c.PostForm("bucketname")
-	// directoryName := c.PostForm("dirname") + "/"
+
 	type JsonData struct {
-		BucketName	string	`json:"bucketname"`
-		DirName		string	`json:"dirname"`
+		BucketName string `json:"bucketname"`
+		DirName    string `json:"dirname"`
 	}
 	data := JsonData{}
 	if err := c.ShouldBindJSON(&data); err != nil {
@@ -232,13 +244,26 @@ func Mkdir(c *gin.Context) {
 	if !strings.HasSuffix(data.DirName, "/") {
 		data.DirName += "/"
 	}
-	
-	// Create an empty object with the given directory name
-	_, err := g.S3core.PutObject(g.S3Ctx, data.BucketName, data.DirName, strings.NewReader(""), 0, "", "", minio.PutObjectOptions{})
 
-	if err != nil {
-		common.Error(c, "创建目录失败", err)
-		return
+	// Split the directory name into segments
+	segments := strings.Split(data.DirName, "/")
+
+	/// Check and create parent directories and the final directory
+	for i := 1; i < len(segments); i++ {
+		parentDir := strings.Join(segments[:i], "/")
+		if !strings.HasSuffix(parentDir, "/") {
+			parentDir += "/" // Ensure each directory segment ends with a slash
+		}
+		log.Println(parentDir)
+		_, err := g.S3core.StatObject(g.S3Ctx, data.BucketName, parentDir, minio.StatObjectOptions{})
+		if err != nil {
+			// Parent directory doesn't exist, create it
+			_, err := g.S3core.PutObject(g.S3Ctx, data.BucketName, parentDir, strings.NewReader(""), 0, "", "", minio.PutObjectOptions{})
+			if err != nil {
+				common.Error(c, "目录创建失败", err)
+				return
+			}
+		}
 	}
 
 	common.Success(c, "目录创建成功", data.DirName)
@@ -247,8 +272,8 @@ func Mkdir(c *gin.Context) {
 // post /s3/list
 func FileList(c *gin.Context) {
 	type JsonData struct {
-		BucketName	string	`json:"bucketname"`
-		Prefix 		string 	`json:"prefix"`
+		BucketName string `json:"bucketname"`
+		Prefix     string `json:"prefix"`
 	}
 	data := JsonData{}
 
@@ -273,16 +298,16 @@ func FileList(c *gin.Context) {
 			fileInfo := m.FileInfo{
 				Key:          v.Key,
 				LastModified: "",
-				Size:         v.Size,
+				Size:         u.FormatFileSize(v.Size),
 				ContentType:  "directory",
 				IsDir:        isdir,
 			}
 			fileInfos = append(fileInfos, fileInfo)
-		}else {
+		} else {
 			fileInfo := m.FileInfo{
 				Key:          v.Key,
 				LastModified: v.LastModified.Format("2006-01-02 15:04:05"),
-				Size:         v.Size,
+				Size:         u.FormatFileSize(v.Size),
 				ContentType:  u.GuessContentTypeFromExtension(v.Key),
 				IsDir:        isdir,
 			}

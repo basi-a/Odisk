@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"math/rand"
 	"mime"
 
@@ -65,6 +66,20 @@ func GuessContentTypeFromExtension(filename string) string {
         contentType = "application/octet-stream"
     }
     return contentType
+}
+
+func FormatFileSize(fileSize int64) string {
+    if fileSize < 1048576 {
+        return fmt.Sprintf("%.2fKB", float64(fileSize)/1024)
+    } else if fileSize < 1073741824 {
+        return fmt.Sprintf("%.2fMB", float64(fileSize)/1048576)
+    } else if fileSize < 1099511627776 {
+        return fmt.Sprintf("%.2fGB", float64(fileSize)/1073741824)
+    } else if fileSize < 112589990688462900 {
+        return fmt.Sprintf("%.2fTB", float64(fileSize)/1099511627776)
+    } else {
+        return fmt.Sprintf("%.2fPB", float64(fileSize)/112589990688462900)
+    }
 }
 
 func GetAllMime() map[string]string {

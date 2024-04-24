@@ -6,6 +6,7 @@ import (
 	"odisk/controller"
 	g "odisk/global"
 	"odisk/middleware"
+	"odisk/utils"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/pprof"
@@ -27,6 +28,9 @@ func InitRouter() {
 	if mode == "debug" {
 		// default is "debug/pprof"
 		pprof.Register(r)
+		r.GET("/mime", func(ctx *gin.Context) {
+			ctx.JSON(http.StatusOK, utils.GetAllMime())
+		})
 	}
 
 	// set trusted proxys
@@ -57,7 +61,7 @@ func InitRouter() {
 
 	v1 := r.Group("/v1")
 	{
-
+		
 		v1.POST("/register", controller.RegisterUser)
 		v1.POST("/login", controller.Login)
 		v1.POST("/emailVerify", controller.EmailVerifyCode)
@@ -77,23 +81,23 @@ func InitRouter() {
 			{
 				sessionGroup.GET("/userInfo", controller.GetUserInfo)
 				sessionGroup.GET("/logout", controller.Logout)
-			}
-
-			s3Group := v1.Group("/s3")
-			{
-				uploadGroup := s3Group.Group("/upload")
+				s3Group := sessionGroup.Group("/s3")
 				{
-					uploadGroup.POST("/small", controller.UploadFile)
-					uploadGroup.POST("/big/create", controller.MultipartUploadCreate)
-					uploadGroup.POST("/big/finish", controller.MultipartUploadFinish)
-					uploadGroup.POST("/abort", controller.MultipartUploadAbort)
-					uploadGroup.GET("/tasklist", controller.UploadTaskList)
+					uploadGroup := s3Group.Group("/upload")
+					{
+						uploadGroup.POST("/small", controller.UploadFile)
+						uploadGroup.POST("/big/create", controller.MultipartUploadCreate)
+						uploadGroup.POST("/big/finish", controller.MultipartUploadFinish)
+						uploadGroup.POST("/abort", controller.MultipartUploadAbort)
+						uploadGroup.GET("/tasklist", controller.UploadTaskList)
+					}
+					s3Group.POST("/download", controller.DownloadFile)
+					s3Group.DELETE("/delate", controller.DeleteFile)
+					s3Group.POST("/mv", controller.MoveFile)
+					s3Group.POST("/mkdir", controller.Mkdir)
+					s3Group.POST("/list", controller.FileList)
 				}
-				s3Group.POST("/download", controller.DownloadFile)
-				s3Group.DELETE("/delate", controller.DeleteFile)
-				s3Group.POST("/mv", controller.MoveFile)
-				s3Group.POST("/mkdir", controller.Mkdir)
-				s3Group.POST("/list", controller.FileList)
+
 			}
 
 		}

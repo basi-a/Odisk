@@ -2,10 +2,12 @@ package utils
 
 import (
 	"math/rand"
+	"mime"
+
+	"path"
 
 	"regexp"
 	"time"
-
 )
 
 // 检查邮箱格式
@@ -54,4 +56,28 @@ func GenerateVerificationCode(length int) string {
 		code[i] = randomCharByte
 	}
 	return string(code)
+}
+
+func GuessContentTypeFromExtension(filename string) string {
+    ext := path.Ext(filename)
+    contentType := mime.TypeByExtension(ext)
+    if contentType == "" {
+        contentType = "application/octet-stream"
+    }
+    return contentType
+}
+
+func GetAllMime() map[string]string {
+	extensions := []string{
+		".txt", ".html", ".css", ".js", ".json", ".xml",
+		".jpg", ".jpeg", ".png", ".gif", ".bmp",
+		".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx",
+		// 添加更多你想测试的文件扩展名...
+	}
+	result := make(map[string]string, 0)
+	for _, ext := range extensions {
+		contentType := GuessContentTypeFromExtension(ext)
+		result[ext] = contentType
+	}
+	return result
 }

@@ -2,6 +2,7 @@ package controller
 
 import (
 	"fmt"
+
 	"net/url"
 	"sort"
 	"strconv"
@@ -10,6 +11,8 @@ import (
 
 	"odisk/common"
 	g "odisk/global"
+	m "odisk/model"
+	u "odisk/utils"
 
 	"github.com/gin-gonic/gin"
 	"github.com/minio/minio-go/v7"
@@ -25,9 +28,15 @@ const (
 // UploadFile generates a pre-signed URL for uploading a file.
 // POST /s3/upload/small
 func UploadFile(c *gin.Context) {
-	objectname := c.PostForm("objectname")
-	bucketname := c.PostForm("bucketname")
-	presignedURL, err := g.S3Client.PresignedPutObject(g.S3Ctx, bucketname, objectname, UploadExpiry)
+	type JsonData struct {
+		ObjectName	string	`json:"objectname"`
+		BucketName 	string 	`json:"bucketname"`
+	}
+	data := JsonData{}
+	if err := c.ShouldBindJSON(&data); err != nil {
+		common.Error(c, "绑定失败", err)
+	}
+	presignedURL, err := g.S3core.Client.PresignedPutObject(g.S3Ctx, data.BucketName, data.ObjectName, UploadExpiry)
 	if err != nil {
 		common.Error(c, "生成预签名URL失败", err)
 		return
@@ -44,7 +53,7 @@ func MultipartUploadCreate(c *gin.Context) {
 	bucketname := c.PostForm("bucketname")
 	partNumberArr := c.PostFormArray("partNumberArr")
 
-	uploadID, err := g.S3Client.NewMultipartUpload(g.S3Ctx, bucketname, objectname, minio.PutObjectOptions{})
+	uploadID, err := g.S3core.NewMultipartUpload(g.S3Ctx, bucketname, objectname, minio.PutObjectOptions{})
 	if err != nil {
 		common.Error(c, "生成uploadID失败", err)
 	}
@@ -52,7 +61,7 @@ func MultipartUploadCreate(c *gin.Context) {
 	presignedURLs := make([]string, 0)
 	for _, v := range partNumberArr {
 
-		presignedURL, err := g.S3Client.Presign(g.S3Ctx, "PUT", bucketname, objectname, UploadExpiry, url.Values{
+		presignedURL, err := g.S3core.Presign(g.S3Ctx, "PUT", bucketname, objectname, UploadExpiry, url.Values{
 			"uploadID":   []string{uploadID},
 			"partNumber": []string{v},
 		})
@@ -87,7 +96,7 @@ func MultipartUploadFinish(c *gin.Context) {
 			PartNumber: v,
 		})
 	}
-	uploadInfo, err := g.S3Client.CompleteMultipartUpload(g.S3Ctx, bucketname, objectname, uploadID, parts, minio.PutObjectOptions{})
+	uploadInfo, err := g.S3core.CompleteMultipartUpload(g.S3Ctx, bucketname, objectname, uploadID, parts, minio.PutObjectOptions{})
 	if err != nil {
 		common.Error(c, "生成预签名URL失败", err)
 	} else {
@@ -100,11 +109,11 @@ func MultipartUploadAbort(c *gin.Context) {
 	objectname := c.PostForm("objectname")
 	uploadID := c.PostForm("uploadID")
 	bucketname := c.PostForm("bucketname")
-	err := g.S3Client.AbortMultipartUpload(g.S3Ctx, bucketname, objectname, uploadID)
+	err := g.S3core.AbortMultipartUpload(g.S3Ctx, bucketname, objectname, uploadID)
 	if err != nil {
 		common.Error(c, "取消上传失败", err)
 	} else {
-		common.Success(c, "上传任务已取消")
+		common.Success(c, "上传任务已取消", nil)
 	}
 }
 
@@ -112,7 +121,7 @@ func MultipartUploadAbort(c *gin.Context) {
 func UploadTaskList(c *gin.Context) {
 	bucketname := c.PostForm("bucketname")
 	prefix := c.DefaultPostForm("prefix", "")
-	result, err := g.S3Client.ListMultipartUploads(g.S3Ctx, bucketname, prefix, "", "", "", 100)
+	result, err := g.S3core.ListMultipartUploads(g.S3Ctx, bucketname, prefix, "", "", "", 100)
 	if err != nil {
 		common.Error(c, "获取文件上传任务失败", err)
 	} else {
@@ -123,12 +132,18 @@ func UploadTaskList(c *gin.Context) {
 
 // POST /s3/download
 func DownloadFile(c *gin.Context) {
-	objectName := c.PostForm("objectname")
-	bucketName := c.PostForm("bucketname")
+	type JsonData struct {
+		ObjectName	string	`json:"objectname"`
+		BucketName 	string 	`json:"bucketname"`
+	}
+	data := JsonData{}
+	if err := c.ShouldBindJSON(&data); err != nil {
+		common.Error(c, "绑定失败", err)
+	}
 	reqParams := make(url.Values)
-	reqParams.Set("response-content-disposition", fmt.Sprintf("attachment; filename=\"%s\"", objectName))
+	reqParams.Set("response-content-disposition", fmt.Sprintf("attachment; filename=\"%s\"", data.ObjectName))
 
-	presignedURL, err := g.S3Client.PresignedGetObject(g.S3Ctx, bucketName, objectName, DownloadExpiry, reqParams)
+	presignedURL, err := g.S3core.PresignedGetObject(g.S3Ctx, data.BucketName, data.ObjectName, DownloadExpiry, reqParams)
 	if err != nil {
 		common.Error(c, "生成预签名URL失败", err)
 		return
@@ -139,88 +154,143 @@ func DownloadFile(c *gin.Context) {
 
 // DELETE /s3/delate
 func DeleteFile(c *gin.Context) {
-	objectName := c.PostForm("objectname")
-	bucketName := c.PostForm("bucketname")
-
-	err := g.S3Client.RemoveObject(g.S3Ctx, bucketName, objectName, minio.RemoveObjectOptions{})
+	// objectName := c.PostForm("objectname")
+	// bucketName := c.PostForm("bucketname")
+	type JsonData struct {
+		ObjectName	string	`json:"objectname"`
+		BucketName 	string 	`json:"bucketname"`
+	}
+	data := JsonData{}
+	if err := c.ShouldBindJSON(&data); err != nil {
+		common.Error(c, "绑定失败", err)
+	}
+	err := g.S3core.RemoveObject(g.S3Ctx, data.BucketName, data.ObjectName, minio.RemoveObjectOptions{})
 	if err != nil {
 		common.Error(c, "删除文件失败", err)
 		return
 	}
 
-	common.Success(c, "文件删除成功")
+	common.Success(c, "文件删除成功", nil)
 }
 
 // POST /s3/mv
 func MoveFile(c *gin.Context) {
-	currentObjectName := c.PostForm("current_objectname")
-	currentBucketName := c.PostForm("current_bucketname")
-	newObjectName := c.PostForm("new_objectname")
-
-	_, err := g.S3Client.StatObject(g.S3Ctx, currentBucketName, currentObjectName, minio.StatObjectOptions{})
+	type JsonData struct {
+		SrcBucketName	string	`json:"srcbucketname"`
+		SrcObjectName	string	`json:"srcobjectname"`
+		DestObjectName	string	`json:"destobjectName"`
+	}
+	// data.SrcObjectName := c.PostForm("current_objectname")
+	// data.SrcBucketName := c.PostForm("current_bucketname")
+	// newObjectName := c.PostForm("new_objectname")
+	data := JsonData{}
+	if err := c.ShouldBindJSON(&data); err != nil {
+		common.Error(c, "绑定失败", err)
+	}
+	_, err := g.S3core.Client.StatObject(g.S3Ctx, data.SrcBucketName, data.SrcObjectName, minio.StatObjectOptions{})
 	if err != nil {
 		common.Error(c, "源文件不存在或无法访问", err)
 		return
 	}
-
+	copyDest := minio.CopyDestOptions{
+		Bucket: data.SrcBucketName,
+		Object: data.DestObjectName,
+	}
 	copySrc := minio.CopySrcOptions{
-		Bucket: currentBucketName,
-		Object: currentObjectName,
+		Bucket: data.SrcBucketName,
+		Object: data.SrcObjectName,
 	}
 
-	_, err = g.S3Client.CopyObject(g.S3Ctx, currentBucketName, currentObjectName, currentBucketName, newObjectName, nil, copySrc, minio.PutObjectOptions{})
+	_, err = g.S3core.Client.CopyObject(g.S3Ctx, copyDest, copySrc)
 	if err != nil {
 		common.Error(c, "复制文件失败", err)
 		return
 	}
 
-	err = g.S3Client.RemoveObject(g.S3Ctx, currentBucketName, currentObjectName, minio.RemoveObjectOptions{})
+	err = g.S3core.Client.RemoveObject(g.S3Ctx, data.SrcBucketName, data.SrcObjectName, minio.RemoveObjectOptions{})
 	if err != nil {
 		common.Error(c, "删除源文件失败（复制成功，但源文件未删除）", err)
 		return
 	}
 
-	common.Success(c, "文件移动(重命名)成功")
+	common.Success(c, "文件移动(重命名)成功", nil)
 }
 
 // POST /s3/mkdir
 func Mkdir(c *gin.Context) {
-	bucketName := c.PostForm("bucketname")
-	directoryName := c.PostForm("dirname") + "/"
-
-	// Ensure the directory name ends with a slash
-	if !strings.HasSuffix(directoryName, "/") {
-		directoryName += "/"
+	// bucketName := c.PostForm("bucketname")
+	// directoryName := c.PostForm("dirname") + "/"
+	type JsonData struct {
+		BucketName	string	`json:"bucketname"`
+		DirName		string	`json:"dirname"`
 	}
-
+	data := JsonData{}
+	if err := c.ShouldBindJSON(&data); err != nil {
+		common.Error(c, "绑定失败", err)
+	}
+	// Ensure the directory name ends with a slash
+	if !strings.HasSuffix(data.DirName, "/") {
+		data.DirName += "/"
+	}
+	
 	// Create an empty object with the given directory name
-	_, err := g.S3Client.PutObject(g.S3Ctx, bucketName, directoryName, strings.NewReader(""), 0, "", "", minio.PutObjectOptions{})
+	_, err := g.S3core.PutObject(g.S3Ctx, data.BucketName, data.DirName, strings.NewReader(""), 0, "", "", minio.PutObjectOptions{})
 
 	if err != nil {
 		common.Error(c, "创建目录失败", err)
 		return
 	}
 
-	common.Success(c, "目录创建成功", directoryName)
+	common.Success(c, "目录创建成功", data.DirName)
 }
 
-// POST /s3/list
+// post /s3/list
 func FileList(c *gin.Context) {
-	bucketname := c.PostForm("bucketname")
-	prefix := c.DefaultPostForm("prefix", "")
+	type JsonData struct {
+		BucketName	string	`json:"bucketname"`
+		Prefix 		string 	`json:"prefix"`
+	}
+	data := JsonData{}
 
-	// List objects with the specified prefix (virtual directory path)
-	objects, err := g.S3Client.ListObjects(bucketname, prefix, "", "", 100)
-	if err != nil {
-		common.Error(c, "获取文件列表失败", err)
-		return
+	if err := c.ShouldBindJSON(&data); err != nil {
+		common.Error(c, "绑定失败", err)
 	}
 
-	// Prepare the response data
-	fileList := make([]string, len(objects.Contents))
-	for i, object := range objects.Contents {
-		fileList[i] = object.Key
+	ch := g.S3core.Client.ListObjects(g.S3Ctx, data.BucketName, minio.ListObjectsOptions{
+		Prefix:    data.Prefix,
+		Recursive: false,
+	})
+
+	fileInfos := []m.FileInfo{}
+
+	// 使用for-range遍历通道
+	for v := range ch {
+		isdir := false
+		if v.Size == 0 && strings.HasSuffix(v.Key, "/") {
+			isdir = !isdir
+		}
+		if isdir {
+			fileInfo := m.FileInfo{
+				Key:          v.Key,
+				LastModified: "",
+				Size:         v.Size,
+				ContentType:  "directory",
+				IsDir:        isdir,
+			}
+			fileInfos = append(fileInfos, fileInfo)
+		}else {
+			fileInfo := m.FileInfo{
+				Key:          v.Key,
+				LastModified: v.LastModified.Format("2006-01-02 15:04:05"),
+				Size:         v.Size,
+				ContentType:  u.GuessContentTypeFromExtension(v.Key),
+				IsDir:        isdir,
+			}
+			fileInfos = append(fileInfos, fileInfo)
+		}
+
 	}
 
-	common.Success(c, "获取文件列表成功", fileList)
+	// 返回结果
+	common.Success(c, "获取文件列表成功", fileInfos)
 }

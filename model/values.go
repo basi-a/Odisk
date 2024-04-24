@@ -8,6 +8,14 @@ type UserInfo struct {
 	Permission       string `json:"permission"`
 }
 
+type FileInfo struct {
+	Key          string `json:"name"`         // Name of the object
+	LastModified string `json:"lastModified"` // Date and time the object was last modified.
+	Size         int64  `json:"size"`         // Size in bytes of the object.
+	IsDir        bool   `json:"isdir"`
+	ContentType  string `json:"contenttype"`
+}
+
 func GetUserInfo(email string) (userInfo UserInfo, err error) {
 
 	var user Users

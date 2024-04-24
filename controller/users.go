@@ -51,7 +51,7 @@ func RegisterUser(c *gin.Context) {
 				common.Error(c, "用户与存储桶对应关系记录失败", err)
 				return
 			} else {
-				common.Success(c, fmt.Sprintf("注册成功, 用户名: %s", username))
+				common.Success(c, fmt.Sprintf("注册成功, 用户名: %s", username), nil)
 				// 创建存储桶
 				if err := g.MakeBucket(bucketmap.BucketName); err != nil {
 					log.Println("创建存储桶失败", err)
@@ -104,7 +104,7 @@ func Login(c *gin.Context) {
 			common.Error(c, "获取信息失败", err)
 		} else {
 			SaveSession(c, "userInfo", userInfo)
-			common.Success(c, fmt.Sprintf("Welcome %s", email))
+			common.Success(c, fmt.Sprintf("Welcome %s", email), nil)
 		}
 
 	}
@@ -133,7 +133,7 @@ func EmailVerifyCode(c *gin.Context) {
 		common.Error(c, "发送邮件错误", err)
 	} else {
 		SaveSession(c, "EmailVerifyCode", data)
-		common.Success(c, "发送邮件成功, 请稍等")
+		common.Success(c, "发送邮件成功, 请稍等", nil)
 	}
 }
 

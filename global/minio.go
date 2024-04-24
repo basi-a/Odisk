@@ -8,7 +8,7 @@ import (
 	"github.com/minio/minio-go/v7/pkg/credentials"
 )
 
-var S3Client *minio.Core
+var S3core *minio.Core
 var S3Ctx context.Context
 
 func InitMinio() {
@@ -18,7 +18,7 @@ func InitMinio() {
 
 func UseMinio() error {
 	var err error
-	S3Client, err = minio.NewCore(Config.Minio.Endpoint, &minio.Options{
+	S3core, err = minio.NewCore(Config.Minio.Endpoint, &minio.Options{
 		Creds:  credentials.NewStaticV4(Config.Minio.AccessKeyID, Config.Minio.SecretAccessKey, ""),
 		Secure: Config.Minio.UseSSL,
 		Region: Config.Minio.Location,
@@ -31,12 +31,12 @@ func UseMinio() error {
 
 func MakeBucket(bucketName string) error {
 
-	err := S3Client.MakeBucket(S3Ctx, bucketName, minio.MakeBucketOptions{
+	err := S3core.MakeBucket(S3Ctx, bucketName, minio.MakeBucketOptions{
 		Region: Config.Minio.Location,
 	})
 	if err != nil {
 		// Check to see if we already own this bucket (which happens if you run this twice)
-		exists, err := S3Client.BucketExists(S3Ctx, bucketName)
+		exists, err := S3core.BucketExists(S3Ctx, bucketName)
 		if err == nil && exists {
 			log.Printf("We already own %s\n", bucketName)
 		} else {

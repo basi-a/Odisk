@@ -5,27 +5,32 @@ type UserInfo struct {
 	UserName         string `json:"username"`
 	Registrationtime string `json:"registrationtime"`
 	BucketName       string `json:"bucketname"`
+	// BucketmapID      uint   `json:"bucketmapID"`
 	Permission       string `json:"permission"`
 }
 
 type FileInfo struct {
 	Key          string `json:"name"`         // Name of the object
 	LastModified string `json:"lastModified"` // Date and time the object was last modified.
-	Size         string  `json:"size"`         // Size in bytes of the object.
+	Size         string `json:"size"`         // Size in bytes of the object.
 	IsDir        bool   `json:"isdir"`
 	ContentType  string `json:"contenttype"`
 }
 
 func GetUserInfo(email string) (userInfo UserInfo, err error) {
 
-	var user Users
+	user := Users{
+		Email: email,
+	}
 
-	if err := user.GetUser(email); err != nil {
+	if err := user.GetUser(); err != nil {
 		return UserInfo{}, err
 	}
 
-	var bucketmap Bucketmap
-	if err := bucketmap.GetUserBucketName(user.ID); err != nil {
+	bucketmap := Bucketmap{
+		UserID: user.ID,
+	}
+	if err := bucketmap.GetUserBucketName(); err != nil {
 		return UserInfo{}, err
 	}
 	userInfo = UserInfo{
@@ -33,6 +38,7 @@ func GetUserInfo(email string) (userInfo UserInfo, err error) {
 		UserName:         user.UserName,
 		Registrationtime: user.CreatedAt.Format("2006-01-02 15:04:05"),
 		BucketName:       bucketmap.BucketName,
+		// BucketmapID:      bucketmap.ID,
 		Permission:       user.Permission,
 	}
 

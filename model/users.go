@@ -133,11 +133,11 @@ func (users *Users) ListUser() ([]Users, error) {
 }
 
 // get a user by email
-func (user *Users) GetUser(email string) error {
+func (user *Users) GetUser() error {
 	db := g.DB
 
 	// var user Users
-	err := db.Where("email = ?", email).First(&user).Error
+	err := db.Where("email = ?", user.Email).First(&user).Error
 	if err != nil {
 		return err
 	}

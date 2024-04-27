@@ -317,7 +317,6 @@ services:
       interval: 30s
       timeout: 30s
       retries: 5
-      start_period: 10s
     networks: 
       app-network:
         ipv4_address: 172.40.20.24
@@ -336,7 +335,6 @@ services:
       interval: 30s
       timeout: 30s
       retries: 5
-      start_period: 10s
     networks: 
       app-network:
         ipv4_address: 172.40.20.25

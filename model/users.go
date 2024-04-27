@@ -50,12 +50,12 @@ func AutoMigrateUser() {
 // add a user with name password email
 func (users *Users) AddUser(username, password, email string, permission *string) (userID uint, err error) {
 	db := g.DB
-	// 检查用户是否已存在
-	var existingUser Users
+	// // 检查用户是否已存在
+	// var existingUser Users
 
-	if err := db.Where("email = ?", email).First(&existingUser).Error; err == nil {
-		return existingUser.ID, nil // 用户已存在，返回现有用户的 ID
-	}
+	// if result := db.Where("email = ?", email).First(&existingUser); err == nil {
+	// 	return existingUser.ID, nil // 用户已存在，返回现有用户的 ID
+	// }
 
 	hashedPassword, err := hashPassword(password)
 	if err != nil {
@@ -73,7 +73,7 @@ func (users *Users) AddUser(username, password, email string, permission *string
 	}
 
 	// 创建新用户
-	if err := db.Create(&user).Error; err != nil {
+	if err := db.Where("email = ?", email).FirstOrCreate(&user).Error; err != nil {
 		return 0, err
 	}
 

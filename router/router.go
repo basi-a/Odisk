@@ -61,7 +61,6 @@ func InitRouter() {
 
 	v1 := r.Group("/v1")
 	{
-		
 		v1.POST("/register", controller.RegisterUser)
 		v1.POST("/login", controller.Login)
 		v1.POST("/emailVerify", controller.EmailVerifyCode)
@@ -74,6 +73,7 @@ func InitRouter() {
 				userGroup.GET("/", controller.ListUsers)
 				userGroup.POST("/update", controller.UpdateUser)
 				userGroup.POST("/delate", controller.DelUser)
+
 			}
 
 			sessionGroup := authedGroup.Group("/")

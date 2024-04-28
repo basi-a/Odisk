@@ -31,31 +31,30 @@ func AutoMigrateUser() {
 	}
 
 	s3Admin := Users{
-		UserName: g.Config.Server.Admin.S3Admin.Username,
-		Password: g.Config.Server.Admin.S3Admin.Password,
-		Email: g.Config.Server.Admin.S3Admin.Email,
+		UserName:   g.Config.Server.Admin.S3Admin.Username,
+		Password:   g.Config.Server.Admin.S3Admin.Password,
+		Email:      g.Config.Server.Admin.S3Admin.Email,
 		Permission: permission.s3Admin,
 	}
 	userAdmin := Users{
-		UserName: g.Config.Server.Admin.UserAdmin.Username,
-		Password: g.Config.Server.Admin.UserAdmin.Password,
-		Email: g.Config.Server.Admin.UserAdmin.Email,
+		UserName:   g.Config.Server.Admin.UserAdmin.Username,
+		Password:   g.Config.Server.Admin.UserAdmin.Password,
+		Email:      g.Config.Server.Admin.UserAdmin.Email,
 		Permission: permission.userAdmin,
 	}
 
-	if _, err :=  s3Admin.AddUser(); err != nil {
+	if _, err := s3Admin.AddUser(); err != nil {
 		log.Println("S3 administrator creation failed:", err)
 	}
-	if _, err :=  userAdmin.AddUser(); err != nil {
+	if _, err := userAdmin.AddUser(); err != nil {
 		log.Println("S3 administrator creation failed:", err)
 	}
 }
 
 // add a user with name password email
 func (user *Users) AddUser() (userID uint, err error) {
-	
 
-	hashedPassword, err := hashPassword(user.Password)
+	hashedPassword, err := HashPassword(user.Password)
 	if err != nil {
 		return 0, err
 	}
@@ -75,12 +74,20 @@ func (user *Users) DelUser() error {
 
 // update user by id with name password and email
 func (user *Users) Update() error {
+	// log.Println(user)
+	if user.Password != "" {
+		hashedPassword, err := HashPassword(user.Password)
+		if err != nil {
+			return err
+		}
+		user.Password = hashedPassword
+	}
+	// log.Println(user)
 	return g.DB.Updates(&user).Error
 }
 
 // list all users
 func ListUser() ([]Users, error) {
-	
 
 	var usersList []Users
 	err := g.DB.Find(&usersList).Error
@@ -95,7 +102,7 @@ func (user *Users) GetUserByEmail() error {
 	return g.DB.Where("email = ?", user.Email).First(&user).Error
 }
 
-func hashPassword(password string) (string, error) {
+func HashPassword(password string) (string, error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		return "", err
@@ -104,12 +111,13 @@ func hashPassword(password string) (string, error) {
 	return string(hashedPassword), nil
 }
 
-func (user *Users) VerifyAccount(email, password string) (ok bool, err error) {
-	
+func (user *Users) VerifyAccount() (ok bool, err error) {
+
 	ok = true
-	if err = g.DB.Select("password").Where("email=?", email).Find(&user).Error; err != nil {
+	userWithhashedpassword := Users{}
+	if err = g.DB.Select("password").Where("email=?", user.Email).Find(&userWithhashedpassword).Error; err != nil {
 		return !ok, err
-	} else if err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
+	} else if err = bcrypt.CompareHashAndPassword([]byte(userWithhashedpassword.Password), []byte(user.Password)); err != nil {
 		return !ok, err
 	}
 	return ok, nil

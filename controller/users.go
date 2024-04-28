@@ -79,22 +79,32 @@ func RegisterUser(c *gin.Context) {
 
 // POST /v1/reset
 func ResetPassword(c *gin.Context) {
-	password := c.PostForm("password")
-	email := c.PostForm("email")
-	code := c.PostForm("code")
+
+	type JsonData struct {
+		Email    string `json:"email"`
+		Password string `json:"password"`
+		Code     string `json:"code"`
+	}
+	data := JsonData{}
+	if err := c.ShouldBindJSON(&data); err != nil {
+		common.Error(c, "绑定失败", err)
+		return
+	}
 
 	value := ReadSession(c, "EmailVerifyCode")
 
-	if emailData, ok := value.(g.EmailData); ok && emailData.Code == code {
+	if emailData, ok := value.(g.EmailData); ok && emailData.Code == data.Code {
 		DelSession(c, "EmailVerifyCode")
+
 		user := m.Users{
-			Password: password,
-			Email:    email,
+			Email:    data.Email,
 		}
+		log.Println(user)
 		if err := user.GetUserByEmail(); err != nil {
 			common.Error(c, "用户不存在", err)
 			return
 		}
+		user.Password = data.Password  // 为了判断是否存在时，不将原始密码赋值成数据库中的旧密码的密文，所有要判断后赋值
 		if err := user.Update(); err != nil {
 			common.Error(c, "更新失败", err)
 			return
@@ -108,8 +118,11 @@ func Login(c *gin.Context) {
 	email := c.PostForm("email")
 	password := c.PostForm("password")
 
-	user := m.Users{}
-	ok, err := user.VerifyAccount(email, password)
+	user := m.Users{
+		Email: email,
+		Password: password,
+	}
+	ok, err := user.VerifyAccount()
 	if err != nil {
 		common.Error(c, "认证失败", err)
 	}
@@ -163,7 +176,7 @@ func ListUsers(c *gin.Context) {
 	}
 }
 
-// POST /v1/users/delate auth 组 这个请求完必须 请求 // DELATE /s3/bucketmapdel
+// DELATE /v1/users/delate auth 组 这个请求完必须 请求 // DELATE /s3/bucketmapdel
 func DelUser(c *gin.Context) {
 	type JsonData struct {
 		Email string `json:"email"`
@@ -203,13 +216,13 @@ func UpdateUser(c *gin.Context) {
 
 	user := m.Users{
 		UserName: data.UserName,
-		Password: data.Password,
 		Email:    data.Email,
 	}
 	if err := user.GetUserByEmail(); err != nil {
 		common.Error(c, "用户不存在", err)
 		return
 	}
+	user.Password = data.Password
 	if err := user.Update(); err != nil {
 		common.Error(c, "更新失败", err)
 	}

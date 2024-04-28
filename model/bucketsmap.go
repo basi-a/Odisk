@@ -9,8 +9,8 @@ import (
 type Bucketmap struct {
 	gorm.Model
 
-	UserID     uint   `gorm:"uniqueIndex"`//:idx_bucketmap_unique"`
-	BucketName string `gorm:"uniqueIndex"`//:idx_bucketmap_unique;not null"`
+	UserID     uint   `gorm:"uniqueIndex"`
+	BucketName string `gorm:"uniqueIndex"`
 
 	// 建立一对多关联关系，添加 onDelete: ReferentialAction.Cascade
 	TaskList []Task `gorm:"foreignKey:BucketName;references:BucketName;constraint:OnDelete:CASCADE"`

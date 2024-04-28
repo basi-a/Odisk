@@ -36,10 +36,15 @@ func RegisterUser(c *gin.Context) {
 	log.Println(bucketName)
 	if emailData, ok := value.(g.EmailData); ok && emailData.Code == code {
 		DelSession(c, "EmailVerifyCode")
-		user := m.Users{}
-		if username != "" && password != "" && email != "" {
 
-			userID, err := user.AddUser(username, password, email, nil)
+		if username != "" && password != "" && email != "" {
+			user := m.Users{
+				UserName:   username,
+				Password:   password,
+				Email:      email,
+				Permission: "",
+			}
+			userID, err := user.AddUser()
 			bucketmap := m.Bucketmap{
 				UserID:     userID,
 				BucketName: bucketName,
@@ -61,6 +66,9 @@ func RegisterUser(c *gin.Context) {
 				}
 			}
 
+		} else {
+			common.Error(c, "用户名、邮箱、密码都不能为空", nil)
+			return
 		}
 
 	} else {
@@ -76,16 +84,24 @@ func ResetPassword(c *gin.Context) {
 	code := c.PostForm("code")
 
 	value := ReadSession(c, "EmailVerifyCode")
+
 	if emailData, ok := value.(g.EmailData); ok && emailData.Code == code {
 		DelSession(c, "EmailVerifyCode")
-		
-		if err := m.UpdateUser("", password, email); err != nil {
+		user := m.Users{
+			Password: password,
+			Email:    email,
+		}
+		if err := user.GetUserByEmail(); err != nil {
+			common.Error(c, "用户不存在", err)
+			return
+		}
+		if err := user.Update(); err != nil {
 			common.Error(c, "更新失败", err)
+			return
 		}
 	}
+	common.Success(c, "重置成功", nil)
 }
-
-
 
 // POST /v1/login 登陆
 func Login(c *gin.Context) {
@@ -139,29 +155,72 @@ func EmailVerifyCode(c *gin.Context) {
 
 // GET /v1/users  auth 组
 func ListUsers(c *gin.Context) {
-
+	userList, err := m.ListUser()
+	if err != nil {
+		common.Error(c, "获取失败", err)
+	} else {
+		common.Success(c, "获取成功", userList)
+	}
 }
 
-// POST /v1/users/delate auth 组
+// POST /v1/users/delate auth 组 这个请求完必须 请求 // DELATE /s3/bucketmapdel
 func DelUser(c *gin.Context) {
-
+	type JsonData struct {
+		Email string `json:"email"`
+	}
+	data := JsonData{}
+	if err := c.ShouldBindJSON(&data); err != nil {
+		common.Error(c, "绑定失败", err)
+		return
+	}
+	user := m.Users{
+		Email: data.Email,
+	}
+	if err := user.GetUserByEmail(); err != nil {
+		common.Error(c, "用户不存在", err)
+		return
+	}
+	if err := user.DelUser(); err != nil {
+		common.Error(c, "删除失败", err)
+		return
+	} else {
+		common.Success(c, "删除成功", err)
+	}
 }
 
 // POST /v1/users/update auth 组
 func UpdateUser(c *gin.Context) {
-	
-}
+	type JsonData struct {
+		UserName string `json:"username"`
+		Password string `json:"password"`
+		Email    string `json:"email"`
+	}
+	data := JsonData{}
+	if err := c.ShouldBindJSON(&data); err != nil {
+		common.Error(c, "绑定失败", err)
+		return
+	}
 
-// POST /v1/users/info auth 组
-func UsersInfo(c *gin.Context) {
-	
+	user := m.Users{
+		UserName: data.UserName,
+		Password: data.Password,
+		Email:    data.Email,
+	}
+	if err := user.GetUserByEmail(); err != nil {
+		common.Error(c, "用户不存在", err)
+		return
+	}
+	if err := user.Update(); err != nil {
+		common.Error(c, "更新失败", err)
+	}
+
 }
 
 // GET /v1/userInfo
 func GetUserInfo(c *gin.Context) {
 
 	value := ReadSession(c, "userInfo")
-	// log.Println(value)
+
 	// 尝试将读取的值断言为 m.UserInfo 类型
 	if userInfo, ok := value.(m.UserInfo); ok && userInfo.Email != "" {
 		common.Success(c, "获取成功", userInfo)

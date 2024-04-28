@@ -23,7 +23,7 @@ func GetUserInfo(email string) (userInfo UserInfo, err error) {
 		Email: email,
 	}
 
-	if err := user.GetUser(); err != nil {
+	if err := user.GetUserByEmail(); err != nil {
 		return UserInfo{}, err
 	}
 

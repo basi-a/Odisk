@@ -1,5 +1,6 @@
 # Odisk
 不过是一个网盘罢了, 为啥叫odisk, 因为用的对象存储是minio
+这个要和前端的`odisk-font`放在同一个目录，不然复制ssl证书会有问题
 # TODO
 - [x] 脚手架
 - [x] GORM

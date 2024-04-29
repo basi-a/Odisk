@@ -5,7 +5,7 @@ type UserInfo struct {
 	UserName         string `json:"username"`
 	Registrationtime string `json:"registrationtime"`
 	BucketName       string `json:"bucketname"`
-	// BucketmapID      uint   `json:"bucketmapID"`
+
 	Permission       string `json:"permission"`
 }
 

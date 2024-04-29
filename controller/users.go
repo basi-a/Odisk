@@ -128,7 +128,7 @@ func Login(c *gin.Context) {
 	}
 	if ok && err == nil {
 		userInfo, err := m.GetUserInfo(email)
-		log.Println(userInfo)
+		// log.Println(userInfo)
 		if err != nil {
 			common.Error(c, "获取信息失败", err)
 		} else {
@@ -225,8 +225,9 @@ func UpdateUser(c *gin.Context) {
 	user.Password = data.Password
 	if err := user.Update(); err != nil {
 		common.Error(c, "更新失败", err)
+		return
 	}
-
+	common.Success(c, "更新成功", nil)
 }
 
 // GET /v1/userInfo

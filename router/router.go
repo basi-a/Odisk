@@ -87,7 +87,6 @@ func InitRouter() {
 						uploadGroup.POST("/small", controller.UploadFile)
 						uploadGroup.POST("/big/create", controller.MultipartUploadCreate)
 						uploadGroup.POST("/big/finish", controller.MultipartUploadFinish)
-						uploadGroup.POST("/abort", controller.MultipartUploadAbort)
 						taskGroup := uploadGroup.Group("/task")
 						{
 							taskGroup.DELETE("/del", controller.TaskDel)

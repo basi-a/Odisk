@@ -129,27 +129,6 @@ func MultipartUploadFinish(c *gin.Context) {
 	}
 }
 
-// POST /s3/upload/abort
-func MultipartUploadAbort(c *gin.Context) {
-	type JsonData struct {
-		BucketName string `json:"bucketname"`
-		ObjectName string `json:"objectname"`
-		UploadID   string `json:"uploadID"`
-	}
-	data := JsonData{}
-
-	if err := c.ShouldBindJSON(&data); err != nil {
-		common.Error(c, "绑定失败", err)
-		return
-	}
-
-	err := g.S3core.AbortMultipartUpload(g.S3Ctx, data.BucketName, data.ObjectName, data.UploadID)
-	if err != nil {
-		common.Error(c, "取消上传失败", err)
-	} else {
-		common.Success(c, "上传任务已取消", nil)
-	}
-}
 
 // POST /s3/download
 func DownloadFile(c *gin.Context) {
@@ -407,6 +386,7 @@ func TaskDel(c *gin.Context) {
 	type JsonData struct {
 		BucketName string `json:"bucketname"`
 		ObjectName string `json:"objectname"`
+		UploadID   string `json:"uploadID"`
 	}
 	data := JsonData{}
 
@@ -414,10 +394,19 @@ func TaskDel(c *gin.Context) {
 		common.Error(c, "绑定失败", err)
 		return
 	}
+	if data.UploadID != "" {
+
+		if err := g.S3core.AbortMultipartUpload(g.S3Ctx, data.BucketName, data.ObjectName, data.UploadID); err != nil {
+			common.Error(c, "取消上传失败", err)
+			return
+		}
+	}
 	task := m.Task{
 		BucketName: data.BucketName,
 		ObjectName: data.ObjectName,
+		UploadID:   data.UploadID,
 	}
+
 	if err := task.LocateTask(); err != nil {
 		common.Error(c, "定位任务失败", err)
 	}
@@ -442,7 +431,7 @@ func GetTaskList(c *gin.Context) {
 	}
 	bucketmap := m.Bucketmap{
 		BucketName: data.BucketName,
-		TaskList: make([]m.Task, 0),
+		TaskList:   make([]m.Task, 0),
 	}
 
 	if bucketmap.BucketName != "" {
@@ -454,8 +443,8 @@ func GetTaskList(c *gin.Context) {
 		if err := bucketmap.GetTaskList(); err != nil {
 			common.Error(c, "获取列表失败", err)
 			return
-		} 
-	}else {
+		}
+	} else {
 		if err := bucketmap.GetTaskListAll(); err != nil {
 			common.Error(c, "获取列表失败", err)
 			return

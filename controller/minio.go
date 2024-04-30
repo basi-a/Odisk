@@ -3,10 +3,10 @@ package controller
 import (
 	"fmt"
 	"log"
+	"strconv"
 
 	"net/url"
-	"sort"
-	"strconv"
+
 	"strings"
 	"time"
 
@@ -43,7 +43,7 @@ func UploadFile(c *gin.Context) {
 		common.Error(c, "生成预签名URL失败", err)
 		return
 	} else {
-		common.Success(c, "Successlly generated presigned URL", map[string]string{"uploadUri": presignedURL.String()})
+		common.Success(c, "Successlly generated presigned URL", map[string]string{"uploadUrl": presignedURL.String()})
 	}
 
 }
@@ -52,9 +52,9 @@ func UploadFile(c *gin.Context) {
 func MultipartUploadCreate(c *gin.Context) {
 
 	type JsonData struct {
-		BucketName    string   `json:"bucketname"`
-		ObjectName    string   `json:"objectname"`
-		PartNumberArr []string `json:"partNumberArr"`
+		BucketName    string `json:"bucketname"`
+		ObjectName    string `json:"objectname"`
+		MaxPartNumber int    `json:"maxPartNumber"` // min 1
 	}
 	data := JsonData{}
 
@@ -68,12 +68,16 @@ func MultipartUploadCreate(c *gin.Context) {
 	}
 
 	presignedURLs := make([]string, 0)
-	for _, v := range data.PartNumberArr {
 
-		presignedURL, err := g.S3core.Client.Presign(g.S3Ctx, "PUT", data.BucketName, data.ObjectName, UploadExpiry, url.Values{
-			"uploadID":   []string{uploadID},
-			"partNumber": []string{v},
-		})
+	// for  v := range data.PartNumberArr {
+	for i := 1; i <= data.MaxPartNumber; i++ {
+		// Get resources properly escaped and lined up before using them in http request.
+		urlValues := make(url.Values)
+		// Set part number.
+		urlValues.Set("partNumber", strconv.Itoa(i))
+		// Set upload id.
+		urlValues.Set("uploadId", uploadID)
+		presignedURL, err := g.S3core.Presign(g.S3Ctx, "PUT", data.BucketName, data.ObjectName, UploadExpiry, urlValues)
 		if err != nil {
 			common.Error(c, "生成预签名URL失败", err)
 			return
@@ -83,12 +87,10 @@ func MultipartUploadCreate(c *gin.Context) {
 
 	type Result struct {
 		UploadID      string   `json:"uploadID"`
-		PartNumberArr []string `json:"partNumberArr"`
 		PresignedURLs []string `json:"presignedURLs"`
 	}
 	result := Result{
 		UploadID:      uploadID,
-		PartNumberArr: data.PartNumberArr,
 		PresignedURLs: presignedURLs,
 	}
 	common.Success(c, "Successlly generated presigned URL", result)
@@ -100,7 +102,8 @@ func MultipartUploadFinish(c *gin.Context) {
 		BucketName    string   `json:"bucketname"`
 		ObjectName    string   `json:"objectname"`
 		UploadID      string   `json:"uploadID"`
-		PartNumberArr []string `json:"partNumberArr"`
+		MaxPartNumber int      `json:"maxPartNumber"`
+		ETags         []string `json:"eTags"`
 	}
 	data := JsonData{}
 
@@ -108,27 +111,22 @@ func MultipartUploadFinish(c *gin.Context) {
 		common.Error(c, "绑定失败", err)
 		return
 	}
-	// partNumberArr := c.PostFormArray("partNumberArr")
-	partNumbers := make([]int, 0)
-	for _, v := range data.PartNumberArr {
-		partNumber, _ := strconv.Atoi(v)
-		partNumbers = append(partNumbers, partNumber)
-	}
-	sort.Ints(partNumbers)
+
 	parts := make([]minio.CompletePart, 0)
-	for _, v := range partNumbers {
+	for i := 1; i <= data.MaxPartNumber; i++ {
 		parts = append(parts, minio.CompletePart{
-			PartNumber: v,
+			PartNumber: i,
+			ETag:       data.ETags[i-1],
 		})
 	}
+	// log.Println(len(parts))
 	uploadInfo, err := g.S3core.CompleteMultipartUpload(g.S3Ctx, data.BucketName, data.ObjectName, data.UploadID, parts, minio.PutObjectOptions{})
 	if err != nil {
-		common.Error(c, "生成预签名URL失败", err)
+		common.Error(c, "合并失败", err)
 	} else {
 		common.Success(c, "上传完成", fmt.Sprintf("uploadInfo: %v", uploadInfo))
 	}
 }
-
 
 // POST /s3/download
 func DownloadFile(c *gin.Context) {

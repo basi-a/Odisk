@@ -17,8 +17,8 @@ CLEAN_DATA=$1
 if [ "$CLEAN_DATA" = "--clean-data" ]; then
     echo "Cleaning MinIO and Database data..."
     sudo rm -rf db
-    sudo rm -rf minio
-
+    sudo rm -rf minio/data
+    sudo rm -rf minio/cert
 fi
 
 docker compose down -v

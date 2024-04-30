@@ -5,6 +5,7 @@ cp -r template dev-containers/server
 cp -r cert dev-containers/server
 cp -r cert dev-containers/haproxy-keepalived
 cp -r cert dev-containers/nginx
+cp -r cert dev-containers/minio
 cd dev-containers || exit
 docker compose up -d
 cd ..

@@ -2,7 +2,8 @@ odisk
 dev-containers/static
 dev-containers/db
 dev-containers/nsq
-dev-containers/minio
+dev-containers/minio/cert
+dev-containers/minio/data
 dev-containers/log
 dev-containers/server/cert
 dev-containers/server/template

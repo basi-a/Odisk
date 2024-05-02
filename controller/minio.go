@@ -23,7 +23,7 @@ const (
 	// Expiry for upload URL
 	UploadExpiry = time.Second * 24 * 60 * 60 // 1 day.
 	// Expiry for download URL
-	DownloadExpiry = time.Second * 24 * 60 * 60 * 7 // 7 days.
+	DefaultDownloadExpiry = time.Second * 24 * 60 * 60 * 7 // 7 days.
 )
 
 // UploadFile generates a pre-signed URL for uploading a file.
@@ -131,24 +131,39 @@ func MultipartUploadFinish(c *gin.Context) {
 // POST /s3/download
 func DownloadFile(c *gin.Context) {
 	type JsonData struct {
-		ObjectName string `json:"objectname"`
-		BucketName string `json:"bucketname"`
+		ObjectName     string        `json:"objectname"`
+		BucketName     string        `json:"bucketname"`
+		DownloadExpiry time.Duration `json:"downloadExpiry"`
 	}
 	data := JsonData{}
 	if err := c.ShouldBindJSON(&data); err != nil {
 		common.Error(c, "绑定失败", err)
 		return
 	}
-	reqParams := make(url.Values)
-	reqParams.Set("response-content-disposition", fmt.Sprintf("attachment; filename=\"%s\"", data.ObjectName))
 
-	presignedURL, err := g.S3core.PresignedGetObject(g.S3Ctx, data.BucketName, data.ObjectName, DownloadExpiry, reqParams)
-	if err != nil {
-		common.Error(c, "生成预签名URL失败", err)
-		return
+	// Split the object 
+	splitedObjectname := strings.Split(data.ObjectName, "/")
+	
+	reqParams := make(url.Values)
+	reqParams.Set("response-content-disposition", fmt.Sprintf("attachment; filename=\"%s\"", splitedObjectname[len(splitedObjectname)-1]))
+	var presignedURL *url.URL
+	var err error
+	if data.DownloadExpiry != 0 {
+		downloadExpiryDuration := time.Duration(data.DownloadExpiry) * time.Second
+		presignedURL, err = g.S3core.PresignedGetObject(g.S3Ctx, data.BucketName, data.ObjectName, downloadExpiryDuration, reqParams)
+		if err != nil {
+			common.Error(c, "生成预签名URL失败", err)
+			return
+		}
+	} else {
+		presignedURL, err = g.S3core.PresignedGetObject(g.S3Ctx, data.BucketName, data.ObjectName, DefaultDownloadExpiry, reqParams)
+		if err != nil {
+			common.Error(c, "生成预签名URL失败", err)
+			return
+		}
 	}
 
-	common.Success(c, "Successlly generated presigned URL", map[string]string{"downloadUri": presignedURL.String()})
+	common.Success(c, "Successlly generated presigned URL", map[string]string{"downloadUrl": presignedURL.String()})
 }
 
 // DELETE /s3/delate
@@ -300,7 +315,7 @@ func FileList(c *gin.Context) {
 			fileInfo := m.FileInfo{
 				Key:          v.Key,
 				LastModified: "",
-				Size:         u.FormatFileSize(v.Size),
+				Size:         "",
 				ContentType:  "directory",
 				IsDir:        isdir,
 			}

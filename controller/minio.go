@@ -3,6 +3,7 @@ package controller
 import (
 	"fmt"
 	"log"
+
 	"strconv"
 
 	"net/url"
@@ -141,9 +142,9 @@ func DownloadFile(c *gin.Context) {
 		return
 	}
 
-	// Split the object 
+	// Split the object
 	splitedObjectname := strings.Split(data.ObjectName, "/")
-	
+
 	reqParams := make(url.Values)
 	reqParams.Set("response-content-disposition", fmt.Sprintf("attachment; filename=\"%s\"", splitedObjectname[len(splitedObjectname)-1]))
 	var presignedURL *url.URL
@@ -311,9 +312,33 @@ func FileList(c *gin.Context) {
 		if v.Size == 0 && strings.HasSuffix(v.Key, "/") {
 			isdir = !isdir
 		}
+		// 分离 Prefix 和 Filename
+		splitedKey := strings.Split(v.Key, "/")
+		var prefix string
+		var name string
+		if isdir {
+			if data.Prefix == v.Key{ //跳过和前缀相同的文件夹
+				continue
+			}
+			prefix = v.Key
+			name = splitedKey[len(splitedKey)-2] // 最后一个是空值，所以要-2
+			if !strings.HasSuffix(name, "/") {
+				name +=  "/" // Ensure each directory segment ends with a slash
+			}
+
+		} else {
+			prefix = strings.Join(splitedKey[:len(splitedKey)-1], "/")
+			if !strings.HasSuffix(prefix, "/") {
+				prefix +=  "/" // Ensure each directory segment ends with a slash
+			}
+			name = splitedKey[len(splitedKey)-1]
+		}
+
 		if isdir {
 			fileInfo := m.FileInfo{
 				Key:          v.Key,
+				Prefix:       prefix,
+				Name:         name,
 				LastModified: "",
 				Size:         "",
 				ContentType:  "directory",
@@ -323,6 +348,8 @@ func FileList(c *gin.Context) {
 		} else {
 			fileInfo := m.FileInfo{
 				Key:          v.Key,
+				Prefix:       prefix,
+				Name:         name,
 				LastModified: v.LastModified.Format("2006-01-02 15:04:05"),
 				Size:         u.FormatFileSize(v.Size),
 				ContentType:  u.GuessContentTypeFromExtension(v.Key),

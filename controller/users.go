@@ -33,7 +33,6 @@ func RegisterUser(c *gin.Context) {
 	// 生成存储桶名字
 	str := username + email + time.Now().String()
 	bucketName := fmt.Sprintf("%x", md5.Sum([]byte(str)))
-	log.Println(bucketName)
 	if emailData, ok := value.(g.EmailData); ok && emailData.Code == code {
 		DelSession(c, "EmailVerifyCode")
 
@@ -97,14 +96,14 @@ func ResetPassword(c *gin.Context) {
 		DelSession(c, "EmailVerifyCode")
 
 		user := m.Users{
-			Email:    data.Email,
+			Email: data.Email,
 		}
 		log.Println(user)
 		if err := user.GetUserByEmail(); err != nil {
 			common.Error(c, "用户不存在", err)
 			return
 		}
-		user.Password = data.Password  // 为了判断是否存在时，不将原始密码赋值成数据库中的旧密码的密文，所有要判断后赋值
+		user.Password = data.Password // 为了判断是否存在时，不将原始密码赋值成数据库中的旧密码的密文，所有要判断后赋值
 		if err := user.Update(); err != nil {
 			common.Error(c, "更新失败", err)
 			return
@@ -119,7 +118,7 @@ func Login(c *gin.Context) {
 	password := c.PostForm("password")
 
 	user := m.Users{
-		Email: email,
+		Email:    email,
 		Password: password,
 	}
 	ok, err := user.VerifyAccount()
@@ -162,11 +161,12 @@ func EmailVerifyCode(c *gin.Context) {
 		common.Error(c, "发送邮件错误", err)
 	} else {
 		SaveSession(c, "EmailVerifyCode", data)
+		// log.Println(data)
 		common.Success(c, "发送邮件成功, 请稍等", nil)
 	}
 }
 
-// GET /v1/users  auth 组
+// GET /v1/users/list  auth 组
 func ListUsers(c *gin.Context) {
 	userList, err := m.ListUser()
 	if err != nil {
@@ -207,26 +207,44 @@ func UpdateUser(c *gin.Context) {
 		UserName string `json:"username"`
 		Password string `json:"password"`
 		Email    string `json:"email"`
+		Code     string `json:"code"`
 	}
 	data := JsonData{}
 	if err := c.ShouldBindJSON(&data); err != nil {
 		common.Error(c, "绑定失败", err)
 		return
 	}
+	value := ReadSession(c, "EmailVerifyCode")
+	log.Println(value)
+	if emailData, ok := value.(g.EmailData); ok && emailData.Code == data.Code {
+		DelSession(c, "EmailVerifyCode")
+		user := m.Users{
+			Email: data.Email,
+		}
+		if err := user.GetUserByEmail(); err != nil {
+			common.Error(c, "用户不存在", err)
+			return
+		}
+		
+		if data.UserName != "" {
+			user.UserName = data.UserName
+		}
+		if data.Password != "" {
+			user.Password = data.Password
+		}else{
+			user.Password = ""
+		}
 
-	user := m.Users{
-		UserName: data.UserName,
-		Email:    data.Email,
-	}
-	if err := user.GetUserByEmail(); err != nil {
-		common.Error(c, "用户不存在", err)
+		if err := user.Update(); err != nil {
+			common.Error(c, "更新失败", err)
+			return
+		}
+	} else {
+		common.Error(c, "邮件验证失败", nil)
 		return
 	}
-	user.Password = data.Password
-	if err := user.Update(); err != nil {
-		common.Error(c, "更新失败", err)
-		return
-	}
+	userInfo, _ := m.GetUserInfo(data.Email)
+	SaveSession(c, "userInfo", userInfo)
 	common.Success(c, "更新成功", nil)
 }
 

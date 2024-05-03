@@ -70,7 +70,7 @@ func InitRouter() {
 		{
 			userGroup := authedGroup.Group("/users")
 			{
-				userGroup.GET("/", controller.ListUsers)
+				userGroup.GET("/list", controller.ListUsers)
 				userGroup.POST("/update", controller.UpdateUser)
 				userGroup.POST("/delate", controller.DelUser)
 

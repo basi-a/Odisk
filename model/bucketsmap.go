@@ -19,19 +19,21 @@ type Bucketmap struct {
 type Task struct {
 	gorm.Model
 	BucketName string `json:"bucketname" gorm:"index:idx_task_bucketname;not null"`
-	ObjectName string `json:"objectname"`
+	ObjectName string `json:"objectname" gorm:"not null"`
+	FileName   string `json:"filename"`
 	UploadID   string `json:"uploadID"` // 小文件没这个
-	SizeType   string `json:"sizetype"` // big or small
-	Status     bool   `json:"status" gorm:"default:false"`
+	Size       uint   `json:"size"`
+	Status     bool   `json:"status" gorm:"default:false;not null"` // uploading: false done: true
 }
 
 func AutoMigrateBucketmapAndTaskList() {
-	if g.DB.Migrator().HasTable(&Bucketmap{}) && g.DB.Migrator().HasTable(&Task{}) {
-		return
-	}
 
-	g.DB.AutoMigrate(&Bucketmap{})
-	g.DB.AutoMigrate(&Task{})
+	if !g.DB.Migrator().HasTable(&Bucketmap{}) {
+		g.DB.AutoMigrate(&Bucketmap{})
+	}
+	if !g.DB.Migrator().HasTable(&Task{}) {
+		g.DB.AutoMigrate(&Task{})
+	}
 }
 
 func (bucketmap *Bucketmap) SaveMap() error {
@@ -62,29 +64,27 @@ func (bucketmap *Bucketmap) DeleteBucketMapWithTask() error {
 	return tx.Commit().Error
 }
 
-func (task *Task)LocateTask() error {
+// func (task *Task) LocateTask() error {
 
-	return g.DB.Where("bucket_name = ? AND object_name = ?", task.BucketName, task.ObjectName).First(&task).Error
-}
+// 	return g.DB.Where("bucket_name = ? AND object_name = ?", task.BucketName, task.ObjectName).First(&task).Error
+// }
 
-func (task *Task) TaskDel() error {
+func (task *Task) TaskDel(id uint) error {
 
-	return g.DB.Delete(&task).Error
+	return g.DB.Delete(&task).Where("id = ?", id).Error
 }
 func (task *Task) TaskAdd() error {
 
 	return g.DB.Create(&task).Error
 }
 
-func (task *Task) TaskDone() error {
-	return g.DB.Model(&task).Update("status", true).Error
+func (task *Task) TaskDone(id uint) error {
+	return g.DB.Model(&task).Where("id = ?", id).Update("status", true).Error
 }
-
 
 func (bucketmap *Bucketmap) GetTaskList() error {
 	return g.DB.Where("bucket_name = ?", bucketmap.BucketName).Find(&bucketmap.TaskList).Error
 }
-
 
 func (bucketmap *Bucketmap) GetTaskListAll() error {
 

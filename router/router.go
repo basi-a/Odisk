@@ -92,6 +92,8 @@ func InitRouter() {
 							taskGroup.DELETE("/del", controller.TaskDel)
 							taskGroup.PUT("/add", controller.TaskAdd)
 							taskGroup.PUT("/done", controller.TaskDone)
+							taskGroup.PUT("/percent/update", controller.UpdateTaskPercent)
+							taskGroup.GET("/percent/:taskID", controller.GetTaskPercent)
 							taskGroup.POST("/list", controller.GetTaskList)
 						}
 					}

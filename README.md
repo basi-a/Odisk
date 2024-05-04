@@ -1,4 +1,5 @@
 # Odisk
+这个是俺滴毕业设计
 不过是一个网盘罢了, 为啥叫odisk, 因为用的对象存储是minio
 这个要和前端的`odisk-font`放在同一个目录，不然复制ssl证书会有问题
 # TODO
@@ -8,10 +9,10 @@
 - [x] MinIO
 - [x] Nsq  理论上应该一个服务程序对应一个，然后几个nsqlookupd做均衡负载和服务发现
 - [X] 数据库设计
-- [x] VUE
+- [x] vue.js
 - [x] https
-- [ ] 前端开发
-- [ ] 前后端联调
+- [x] 前端开发
+- [x] 前后端联调
 - [x] 高可用集群模拟
 - [ ] 论文
 # 网络地址规划
@@ -58,9 +59,14 @@ cd ../
 go mod tidy
 ./quick-fun.sh
 ```
-执行完了，记得把生成的证书添加进浏览器的证书管理的授权机构里面
 
 需要先有`docker`、`docker-compose`、`golang`, 没有的话需要先安装
 ```bash
 sudo pacman -S docker docker-compose go
+```
+
+# 生成测试文件
+```bash
+dd if=/dev/zero of=testfile-a bs=1M count=1024  #1G 正好不用分片的最大文件
+dd if=/dev/zero of=testfile-b bs=4M count=1024  #4G 
 ```

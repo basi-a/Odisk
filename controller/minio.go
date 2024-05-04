@@ -46,7 +46,6 @@ func UploadFile(c *gin.Context) {
 	} else {
 		common.Success(c, "Successlly generated presigned URL", map[string]string{"uploadUrl": presignedURL.String()})
 	}
-
 }
 
 // POST /s3/upload/big/create
@@ -317,19 +316,19 @@ func FileList(c *gin.Context) {
 		var prefix string
 		var name string
 		if isdir {
-			if data.Prefix == v.Key{ //跳过和前缀相同的文件夹
+			if data.Prefix == v.Key { //跳过和前缀相同的文件夹
 				continue
 			}
 			prefix = v.Key
 			name = splitedKey[len(splitedKey)-2] // 最后一个是空值，所以要-2
 			if !strings.HasSuffix(name, "/") {
-				name +=  "/" // Ensure each directory segment ends with a slash
+				name += "/" // Ensure each directory segment ends with a slash
 			}
 
 		} else {
 			prefix = strings.Join(splitedKey[:len(splitedKey)-1], "/")
 			if !strings.HasSuffix(prefix, "/") {
-				prefix +=  "/" // Ensure each directory segment ends with a slash
+				prefix += "/" // Ensure each directory segment ends with a slash
 			}
 			name = splitedKey[len(splitedKey)-1]
 		}
@@ -369,9 +368,10 @@ func TaskAdd(c *gin.Context) {
 	type JsonData struct {
 		BucketName string `json:"bucketname"`
 		ObjectName string `json:"objectname"`
+		FileName   string `json:"filename"`
 		UploadID   string `json:"uploadID"` // 小文件没这个
-		SizeType   string `json:"sizetype"` // big or small
-		Status     bool   `json:"status"`
+		Size       uint   `json:"size"`
+		Status     bool   `json:"status"` // uploading: false done: true
 	}
 	data := JsonData{}
 
@@ -382,23 +382,62 @@ func TaskAdd(c *gin.Context) {
 	task := m.Task{
 		BucketName: data.BucketName,
 		ObjectName: data.ObjectName,
+		FileName:   data.FileName,
 		UploadID:   data.UploadID,
-		SizeType:   data.SizeType,
+		Size:       data.Size,
 		Status:     data.Status,
 	}
 	if err := task.TaskAdd(); err != nil {
+		// log.Println(task)
 		common.Error(c, "记录任务失败", err)
 	} else {
-		common.Success(c, "记录任务成功", task.CreatedAt.Format("2006-01-02 15:04:05"))
+		common.Success(c, "记录任务成功", map[string]uint{
+			"taskID": task.ID,
+		})
 	}
+}
 
+// PUT /s3/upload/task/percent/update
+func UpdateTaskPercent(c *gin.Context) {
+	type JsonData struct {
+		TaskID  int `json:"taskID"`
+		Percent int `json:"percent"`
+	}
+	data := JsonData{}
+
+	if err := c.ShouldBindJSON(&data); err != nil {
+		common.Error(c, "绑定失败", err)
+		return
+	}
+	key := fmt.Sprintf("TaskPercent: %d", data.TaskID)
+	SaveSession(c, key, data.Percent)
+	common.Success(c, "更新成功", nil)
+}
+
+// GET /s3/upload/task/percent/:taskID
+func GetTaskPercent(c *gin.Context) {
+	taskID, err := strconv.Atoi(c.Param("taskID"))
+	if err != nil {
+		common.Error(c, "进度获取失败", err)
+		return
+	}
+	// log.Println(taskID)
+	key := fmt.Sprintf("TaskPercent: %d", taskID)
+	value := ReadSession(c, key)
+	// log.Println(value)
+	if percent, ok := value.(int); ok {
+		common.Success(c, "进度获取成功", map[string]int{
+			"percent": percent,
+		})
+	} else {
+		common.Error(c, "获取失败", nil)
+	}
 }
 
 // PUT /s3/upload/task/done
 func TaskDone(c *gin.Context) {
 	type JsonData struct {
-		BucketName string `json:"bucketname"`
-		ObjectName string `json:"objectname"`
+		TaskID int `json:"taskID"`
 	}
 	data := JsonData{}
 
@@ -406,18 +445,15 @@ func TaskDone(c *gin.Context) {
 		common.Error(c, "绑定失败", err)
 		return
 	}
-	task := m.Task{
-		BucketName: data.BucketName,
-		ObjectName: data.ObjectName,
-	}
-	if err := task.LocateTask(); err != nil {
-		common.Error(c, "定位任务失败", err)
-	}
-	if err := task.TaskDone(); err != nil {
+	task := m.Task{}
+
+	if err := task.TaskDone(uint(data.TaskID)); err != nil {
 		common.Error(c, "任务状态标记失败", err)
 
 	} else {
 		common.Success(c, "任务状态标记成功", task.Status)
+		key := fmt.Sprintf("TaskPercent: %d", task.ID)
+		DelSession(c, key)
 	}
 }
 
@@ -427,6 +463,7 @@ func TaskDel(c *gin.Context) {
 		BucketName string `json:"bucketname"`
 		ObjectName string `json:"objectname"`
 		UploadID   string `json:"uploadID"`
+		TaskID     int    `json:"taskID"`
 	}
 	data := JsonData{}
 
@@ -434,23 +471,22 @@ func TaskDel(c *gin.Context) {
 		common.Error(c, "绑定失败", err)
 		return
 	}
-	if data.UploadID != "" {
+	if data.UploadID != "---" {
 
 		if err := g.S3core.AbortMultipartUpload(g.S3Ctx, data.BucketName, data.ObjectName, data.UploadID); err != nil {
 			common.Error(c, "取消上传失败", err)
 			return
 		}
+	} else {
+		// 小文件直接上传，肯定会生成一个不完整的文件
+		if err := g.S3core.Client.RemoveObject(g.S3Ctx, data.BucketName, data.ObjectName, minio.RemoveObjectOptions{}); err != nil { 
+			common.Error(c, "取消上传失败", err)
+			return
+		}
 	}
-	task := m.Task{
-		BucketName: data.BucketName,
-		ObjectName: data.ObjectName,
-		UploadID:   data.UploadID,
-	}
+	task := m.Task{}
 
-	if err := task.LocateTask(); err != nil {
-		common.Error(c, "定位任务失败", err)
-	}
-	if err := task.TaskDel(); err != nil {
+	if err := task.TaskDel(uint(data.TaskID)); err != nil {
 		common.Error(c, "任务删除/取消失败", err)
 
 	} else {

@@ -476,20 +476,41 @@ func TaskAbort(c *gin.Context) {
 			common.Error(c, "取消上传失败", err)
 			return
 		}
-	} else {
-		// 小文件直接上传，肯定会生成一个不完整的文件
-		if err := g.S3core.Client.RemoveObject(g.S3Ctx, data.BucketName, data.ObjectName, minio.RemoveObjectOptions{}); err != nil {
-			common.Error(c, "取消上传失败", err)
-			return
-		}
-	}
+	} 
 	task := m.Task{}
 
 	if err := task.TaskAbort(uint(data.TaskID)); err != nil {
-		common.Error(c, "任务删除/取消失败", err)
-
+		common.Error(c, "任务取消失败", err)
 	} else {
-		common.Success(c, "任务删除/取消成功", nil)
+		common.Success(c, "任务取消成功", nil)
+	}
+}
+// DELATE /s3/upload/task/del
+func TaskDel(c *gin.Context) {
+	type JsonData struct {
+		TaskID     int    `json:"taskID"`
+	}
+	data := JsonData{}
+
+	if err := c.ShouldBindJSON(&data); err != nil {
+		common.Error(c, "绑定失败", err)
+		return
+	}
+	task := m.Task{}
+	if err := task.LocateTask(uint(data.TaskID)); err != nil {
+		common.Error(c, "任务定位失败", err)
+		return
+	}
+	// log.Println(task)
+	if task.Status == "uploading" {
+		common.Error(c, "上传中任务不能删除, 请先取消", nil)
+		return
+	}
+	if err := task.TaskDel(uint(data.TaskID)); err != nil {
+		common.Error(c, "任务取消失败", err)
+		return
+	} else {
+		common.Success(c, "任务取消成功", nil)
 	}
 }
 

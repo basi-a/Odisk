@@ -7,6 +7,8 @@ dev-containers/minio/data
 dev-containers/log
 dev-containers/server/cert
 dev-containers/server/template
+dev-containers/server/mkcert
+dev-containers/haproxy-keepalived/mkcert
 dev-containers/haproxy-keepalived/cert
 dev-containers/nginx/cert
 dev-containers/nginx/dist

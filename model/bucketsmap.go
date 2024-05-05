@@ -1,6 +1,7 @@
 package model
 
 import (
+
 	g "odisk/global"
 
 	"gorm.io/gorm"
@@ -64,13 +65,11 @@ func (bucketmap *Bucketmap) DeleteBucketMapWithTask() error {
 	return tx.Commit().Error
 }
 
-// func (task *Task) LocateTask() error {
-
-// 	return g.DB.Where("bucket_name = ? AND object_name = ?", task.BucketName, task.ObjectName).First(&task).Error
-// }
+func (task *Task) LocateTask(id uint) error {
+	return g.DB.Where("id = ?", id).First(&task).Error
+}
 
 func (task *Task) TaskDel(id uint) error {
-
 	return g.DB.Where("id = ?", id).Delete(&task).Error
 }
 func (task *Task) TaskAdd() error {

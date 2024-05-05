@@ -90,6 +90,7 @@ func InitRouter() {
 						taskGroup := uploadGroup.Group("/task")
 						{
 							taskGroup.DELETE("/abort", controller.TaskAbort)
+							taskGroup.DELETE("/del", controller.TaskDel)
 							taskGroup.PUT("/add", controller.TaskAdd)
 							taskGroup.PUT("/done", controller.TaskDone)
 							taskGroup.PUT("/percent/update", controller.UpdateTaskPercent)

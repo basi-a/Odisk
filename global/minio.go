@@ -2,7 +2,11 @@ package global
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"log"
+	"net/http"
+	"os"
 
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
@@ -18,9 +22,29 @@ func InitMinio() {
 
 func UseMinio() error {
 	var err error
+	// 假设您有一个或多个CA证书文件（例如.crt文件）
+	certPool := x509.NewCertPool()
+
+	// 从文件中读取证书
+	caCertPath := Config.Server.Ssl.Cert // 更改为实际的证书路径
+	caCertBytes, err := os.ReadFile(caCertPath)
+	if err != nil {
+		log.Fatalf("could not read CA certificate: %v", err)
+	}
+
+	// 尝试将PEM编码的证书添加到证书池
+	if ok := certPool.AppendCertsFromPEM(caCertBytes); !ok {
+		log.Fatalf("failed to append certificate to pool")
+	}
+	httpTransport := &http.Transport{
+		TLSClientConfig: &tls.Config{
+			RootCAs: certPool, // 设置证书池
+		},
+	}
 	S3core, err = minio.NewCore(Config.Minio.Endpoint, &minio.Options{
 		Creds:  credentials.NewStaticV4(Config.Minio.AccessKeyID, Config.Minio.SecretAccessKey, ""),
 		Secure: Config.Minio.UseSSL,
+		Transport: httpTransport,
 		Region: Config.Minio.Location,
 	})
 	if err != nil {

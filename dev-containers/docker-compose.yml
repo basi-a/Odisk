@@ -37,9 +37,10 @@ x-minio-common: &minio-common
     MINIO_REGION_NAME: zh-private-1
     MINIO_SERVER_URL: https://172.40.20.100:9000
     MINIO_BROWSER_REDIRECT_URL: https://172.40.20.100:9000
-  
+    MC_HOST_local: https://minioadmin:minioadmin@localhost:9000
+
   healthcheck:
-    test: ["CMD", "curl", "-k", "https://localhost:9000"]
+    test: ["CMD", "mc", "ready", "local", "--insecure"]
     interval: 10s
     retries: 10
     timeout: 5s
@@ -60,6 +61,7 @@ x-keepalived-haproxy-common: &keepalived-haproxy-common
       condition: service_healthy
 
   command: /sbin/init
+
   privileged: true  
 
 x-server-common: &server-common
@@ -74,7 +76,7 @@ x-server-common: &server-common
     - "7000"
   command: /opt/odisk
   healthcheck:
-    test: ["CMD", "curl", "-k","-f", "https://localhost:7000/ping"]
+    test: ["CMD", "curl","-I", "-k", "https://localhost:7000/ping"]
     interval: 5m
     retries: 10
     timeout: 5s

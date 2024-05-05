@@ -89,7 +89,7 @@ func InitRouter() {
 						uploadGroup.POST("/big/finish", controller.MultipartUploadFinish)
 						taskGroup := uploadGroup.Group("/task")
 						{
-							taskGroup.DELETE("/del", controller.TaskDel)
+							taskGroup.DELETE("/abort", controller.TaskAbort)
 							taskGroup.PUT("/add", controller.TaskAdd)
 							taskGroup.PUT("/done", controller.TaskDone)
 							taskGroup.PUT("/percent/update", controller.UpdateTaskPercent)

@@ -23,7 +23,7 @@ type Task struct {
 	FileName   string `json:"filename"`
 	UploadID   string `json:"uploadID"` // 小文件没这个
 	Size       uint   `json:"size"`
-	Status     bool   `json:"status" gorm:"default:false;not null"` // uploading: false done: true
+	Status     string   `json:"status" gorm:"default:uploading;not null"` // uploading done removed
 }
 
 func AutoMigrateBucketmapAndTaskList() {
@@ -71,7 +71,7 @@ func (bucketmap *Bucketmap) DeleteBucketMapWithTask() error {
 
 func (task *Task) TaskDel(id uint) error {
 
-	return g.DB.Delete(&task).Where("id = ?", id).Error
+	return g.DB.Where("id = ?", id).Delete(&task).Error
 }
 func (task *Task) TaskAdd() error {
 
@@ -79,8 +79,12 @@ func (task *Task) TaskAdd() error {
 }
 
 func (task *Task) TaskDone(id uint) error {
-	return g.DB.Model(&task).Where("id = ?", id).Update("status", true).Error
+	return g.DB.Model(&task).Where("id = ?", id).Update("status", "done").Error
 }
+func (task *Task) TaskAbort(id uint) error {
+	return g.DB.Model(&task).Where("id = ?", id).Update("status", "removed").Error
+}
+
 
 func (bucketmap *Bucketmap) GetTaskList() error {
 	return g.DB.Where("bucket_name = ?", bucketmap.BucketName).Find(&bucketmap.TaskList).Error

@@ -371,7 +371,6 @@ func TaskAdd(c *gin.Context) {
 		FileName   string `json:"filename"`
 		UploadID   string `json:"uploadID"` // 小文件没这个
 		Size       uint   `json:"size"`
-		Status     bool   `json:"status"` // uploading: false done: true
 	}
 	data := JsonData{}
 
@@ -385,7 +384,6 @@ func TaskAdd(c *gin.Context) {
 		FileName:   data.FileName,
 		UploadID:   data.UploadID,
 		Size:       data.Size,
-		Status:     data.Status,
 	}
 	if err := task.TaskAdd(); err != nil {
 		// log.Println(task)
@@ -457,8 +455,8 @@ func TaskDone(c *gin.Context) {
 	}
 }
 
-// DELATE /s3/upload/task/del
-func TaskDel(c *gin.Context) {
+// DELATE /s3/upload/task/abort
+func TaskAbort(c *gin.Context) {
 	type JsonData struct {
 		BucketName string `json:"bucketname"`
 		ObjectName string `json:"objectname"`
@@ -471,7 +469,8 @@ func TaskDel(c *gin.Context) {
 		common.Error(c, "绑定失败", err)
 		return
 	}
-	if data.UploadID != "---" {
+	// log.Println(data)
+	if data.UploadID != "----" {
 
 		if err := g.S3core.AbortMultipartUpload(g.S3Ctx, data.BucketName, data.ObjectName, data.UploadID); err != nil {
 			common.Error(c, "取消上传失败", err)
@@ -479,14 +478,14 @@ func TaskDel(c *gin.Context) {
 		}
 	} else {
 		// 小文件直接上传，肯定会生成一个不完整的文件
-		if err := g.S3core.Client.RemoveObject(g.S3Ctx, data.BucketName, data.ObjectName, minio.RemoveObjectOptions{}); err != nil { 
+		if err := g.S3core.Client.RemoveObject(g.S3Ctx, data.BucketName, data.ObjectName, minio.RemoveObjectOptions{}); err != nil {
 			common.Error(c, "取消上传失败", err)
 			return
 		}
 	}
 	task := m.Task{}
 
-	if err := task.TaskDel(uint(data.TaskID)); err != nil {
+	if err := task.TaskAbort(uint(data.TaskID)); err != nil {
 		common.Error(c, "任务删除/取消失败", err)
 
 	} else {

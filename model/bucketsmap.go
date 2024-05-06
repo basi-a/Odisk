@@ -14,7 +14,7 @@ type Bucketmap struct {
 	BucketName string `gorm:"uniqueIndex"`
 
 	// 建立一对多关联关系，添加 onDelete: ReferentialAction.Cascade
-	TaskList []Task `gorm:"foreignKey:BucketName;references:BucketName;constraint:OnDelete:CASCADE"`
+	TaskList []Task `gorm:"foreignKey:BucketName;references:BucketName"`//;constraint:OnDelete:CASCADE"`
 }
 
 type Task struct {
@@ -48,13 +48,17 @@ func (bucketmap *Bucketmap) GetUserBucketName() error {
 }
 func (bucketmap *Bucketmap) GetMap() error {
 
-	return g.DB.Where("bucket_name =?", bucketmap.BucketName).First(&bucketmap).Error
+	return g.DB.Where("user_id=?", bucketmap.UserID).First(&bucketmap).Error
 }
 
 func (bucketmap *Bucketmap) DeleteBucketMapWithTask() error {
 	// 使用事务确保操作安全
 	tx := g.DB.Begin()
-
+	// 手动删除关联的Task
+    if err := tx.Where("bucket_name = ?", bucketmap.BucketName).Delete(&Task{}).Error; err != nil {
+        tx.Rollback()
+        return err
+    }
 	// 删除Bucketmap，由于设置了cascade，关联的Task会自动删除
 	if err := tx.Delete(bucketmap).Error; err != nil {
 		tx.Rollback()

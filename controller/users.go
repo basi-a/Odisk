@@ -176,7 +176,7 @@ func ListUsers(c *gin.Context) {
 	}
 }
 
-// DELATE /v1/users/delate auth 组 这个请求完必须 请求 // DELATE /s3/bucketmapdel
+// POST /v1/users/delete auth 组 这个请求完必须 请求
 func DelUser(c *gin.Context) {
 	type JsonData struct {
 		Email string `json:"email"`
@@ -196,55 +196,133 @@ func DelUser(c *gin.Context) {
 	if err := user.DelUser(); err != nil {
 		common.Error(c, "删除失败", err)
 		return
-	} else {
-		common.Success(c, "删除成功", err)
 	}
+	bucketmap := m.Bucketmap{
+		UserID: user.ID,
+	}
+	if err := bucketmap.GetMap(); err != nil {
+		common.Error(c, "获取用户与存储桶关联关系失败", err)
+		return
+	}
+	if err := bucketmap.DeleteBucketMapWithTask(); err != nil {
+		common.Error(c, "删除用户关联的桶以及任务失败", err)
+		return
+	}
+	// 定义一个策略来拒绝所有访问, 但允许minio console 列出桶
+	policy := `{
+		"Version": "2012-10-17",
+		"Statement": [
+			{
+				"Sid": "AllowListBucketForConsole",
+				"Effect": "Allow",
+				"Principal": {
+					"AWS": [
+						"*"
+					]
+				},
+				"Action": [
+					"s3:ListBucket"
+				],
+				"Resource": [
+					"arn:aws:s3:::` + bucketmap.BucketName + `"
+				],
+				"Condition": {
+					"StringEquals": {
+						"s3:prefix": [
+							""
+						],
+						"s3:delimiter": [
+							"/"
+						]
+					}
+				}
+			},
+			{
+				"Sid": "DenyAllObjectActions",
+				"Effect": "Deny",
+				"Principal": "*",
+				"Action": [
+					"s3:GetObject",
+					"s3:PutObject",
+					"s3:DeleteObject",
+					"s3:ListMultipartUploadParts",
+					"s3:AbortMultipartUpload"
+				],
+				"Resource": [
+					"arn:aws:s3:::` + bucketmap.BucketName + `/*"
+				]
+			}
+		]
+	}`
+	if err := g.S3core.Client.SetBucketPolicy(g.S3Ctx, bucketmap.BucketName, policy); err != nil {
+		common.Error(c, "停用桶失败", err)
+		return
+	}
+	// if err := g.S3core.Client.RemoveBucketWithOptions(g.S3Ctx, bucketmap.BucketName, minio.RemoveBucketOptions{
+	// 	ForceDelete: true,
+	// });err != nil {
+	// 	common.Error(c, "清除并删除桶失败", err)
+	// }
+	common.Success(c, "删除成功", nil)
 }
 
 // POST /v1/users/update auth 组
 func UpdateUser(c *gin.Context) {
 	type JsonData struct {
-		UserName string `json:"username"`
-		Password string `json:"password"`
-		Email    string `json:"email"`
-		Code     string `json:"code"`
+		UserName   string `json:"username"`
+		Password   string `json:"password"`
+		Email      string `json:"email"`
+		NewEmail   string `json:"newemail"`
+		Permission string `json:"permission"`
+		Code       string `json:"code"`
 	}
 	data := JsonData{}
 	if err := c.ShouldBindJSON(&data); err != nil {
 		common.Error(c, "绑定失败", err)
 		return
 	}
-	value := ReadSession(c, "EmailVerifyCode")
-	log.Println(value)
-	if emailData, ok := value.(g.EmailData); ok && emailData.Code == data.Code {
-		DelSession(c, "EmailVerifyCode")
-		user := m.Users{
-			Email: data.Email,
-		}
-		if err := user.GetUserByEmail(); err != nil {
-			common.Error(c, "用户不存在", err)
+	if data.Code != "" {
+		value := ReadSession(c, "EmailVerifyCode")
+		if emailData, ok := value.(g.EmailData); !ok || emailData.Code != data.Code {
+			DelSession(c, "EmailVerifyCode")
+			common.Error(c, "验证码验证失败", nil)
 			return
-		}
-		
-		if data.UserName != "" {
-			user.UserName = data.UserName
-		}
-		if data.Password != "" {
-			user.Password = data.Password
-		}else{
-			user.Password = ""
+		} else {
+			DelSession(c, "EmailVerifyCode")
 		}
 
-		if err := user.Update(); err != nil {
-			common.Error(c, "更新失败", err)
-			return
-		}
-	} else {
-		common.Error(c, "邮件验证失败", nil)
+	}
+
+	user := m.Users{
+		Email: data.Email,
+	}
+	if err := user.GetUserByEmail(); err != nil {
+		common.Error(c, "用户不存在", err)
 		return
 	}
-	userInfo, _ := m.GetUserInfo(data.Email)
-	SaveSession(c, "userInfo", userInfo)
+	if data.NewEmail != "" {
+		user.Email = data.NewEmail
+	}
+	if data.UserName != "" {
+		user.UserName = data.UserName
+	}
+	if data.Permission != "" {
+		user.Permission = data.Permission
+	}
+	if data.Password != "" {
+		user.Password = data.Password
+	} else {
+		user.Password = ""
+	}
+
+	if err := user.Update(); err != nil {
+		common.Error(c, "更新失败", err)
+		return
+	}
+	if data.Code != "" {
+		userInfo, _ := m.GetUserInfo(data.Email)
+		SaveSession(c, "userInfo", userInfo)
+	}
 	common.Success(c, "更新成功", nil)
 }
 

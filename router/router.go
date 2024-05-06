@@ -72,7 +72,7 @@ func InitRouter() {
 			{
 				userGroup.GET("/list", controller.ListUsers)
 				userGroup.POST("/update", controller.UpdateUser)
-				userGroup.POST("/delate", controller.DelUser)
+				userGroup.POST("/delete", controller.DelUser)
 
 			}
 
@@ -99,7 +99,7 @@ func InitRouter() {
 						}
 					}
 					s3Group.POST("/download", controller.DownloadFile)
-					s3Group.POST("/delate", controller.DeleteFile)
+					s3Group.POST("/delete", controller.DeleteFile)
 					s3Group.POST("/mv", controller.MoveFile)
 					s3Group.POST("/mkdir", controller.Mkdir)
 					s3Group.POST("/list", controller.FileList)

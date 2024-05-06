@@ -38,8 +38,7 @@ x-hosts-common: &hosts-common
       - "nsqd:172.40.20.25"
       - "nsqadmin:172.40.20.26"
 ```
-# 接口文档
-[Apifox 文档分享 ](https://apifox.com/apidoc/shared-60f72b42-a39e-4e18-85b5-a0c4e84e415d)
+
 # 食用方式
 ```bash
 mkdir dev-space

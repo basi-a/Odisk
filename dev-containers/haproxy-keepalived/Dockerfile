@@ -13,7 +13,7 @@ RUN dnf makecache && \
 RUN systemctl enable haproxy keepalived
 # 复制启动脚本到镜像内
 COPY ./scripts/check_haproxy.sh /opt/check_haproxy.sh
-RUN chmod 755 /opt/check_haproxy.sh && mkdir /var/log/keepalived /opt/cert
+RUN chmod 755 /opt/check_haproxy.sh && mkdir /var/log/keepalived /var/log/haproxy /opt/cert
 COPY ./cert/* /opt/cert/
 WORKDIR /root
 # 设置启动命令

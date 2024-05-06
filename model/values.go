@@ -28,19 +28,29 @@ func GetUserInfo(email string) (userInfo UserInfo, err error) {
 	if err := user.GetUserByEmail(); err != nil {
 		return UserInfo{}, err
 	}
+	if user.Permission == "general" {
+		bucketmap := Bucketmap{
+			UserID: user.ID,
+		}
+		if err := bucketmap.GetUserBucketName(); err != nil {
+			return UserInfo{}, err
+		}
+		userInfo = UserInfo{
+			Email:            user.Email,
+			UserName:         user.UserName,
+			Registrationtime: user.CreatedAt.Format("2006-01-02 15:04:05"),
+			BucketName:       bucketmap.BucketName,
 
-	bucketmap := Bucketmap{
-		UserID: user.ID,
+			Permission: user.Permission,
+		}
+		return
 	}
-	if err := bucketmap.GetUserBucketName(); err != nil {
-		return UserInfo{}, err
-	}
+
 	userInfo = UserInfo{
 		Email:            user.Email,
 		UserName:         user.UserName,
 		Registrationtime: user.CreatedAt.Format("2006-01-02 15:04:05"),
-		BucketName:       bucketmap.BucketName,
-		// BucketmapID:      bucketmap.ID,
+		BucketName:       "----",
 		Permission: user.Permission,
 	}
 

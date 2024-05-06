@@ -455,7 +455,7 @@ func TaskDone(c *gin.Context) {
 	}
 }
 
-// DELATE /s3/upload/task/abort
+// POST /s3/upload/task/abort
 func TaskAbort(c *gin.Context) {
 	type JsonData struct {
 		BucketName string `json:"bucketname"`
@@ -485,7 +485,7 @@ func TaskAbort(c *gin.Context) {
 		common.Success(c, "任务取消成功", nil)
 	}
 }
-// DELATE /s3/upload/task/del
+// POST /s3/upload/task/del
 func TaskDel(c *gin.Context) {
 	type JsonData struct {
 		TaskID     int    `json:"taskID"`
@@ -549,7 +549,7 @@ func GetTaskList(c *gin.Context) {
 	common.Success(c, "获取列表成功", bucketmap.TaskList)
 }
 
-// DELATE /s3/bucketmapdel
+// POST /s3/bucketmapdel
 func DeleteBucketMapWithTask(c *gin.Context) {
 	type JsonData struct {
 		BucketName string `json:"bucketname"`

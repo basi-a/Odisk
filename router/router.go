@@ -89,8 +89,8 @@ func InitRouter() {
 						uploadGroup.POST("/big/finish", controller.MultipartUploadFinish)
 						taskGroup := uploadGroup.Group("/task")
 						{
-							taskGroup.DELETE("/abort", controller.TaskAbort)
-							taskGroup.DELETE("/del", controller.TaskDel)
+							taskGroup.POST("/abort", controller.TaskAbort)
+							taskGroup.POST("/del", controller.TaskDel)
 							taskGroup.PUT("/add", controller.TaskAdd)
 							taskGroup.PUT("/done", controller.TaskDone)
 							taskGroup.PUT("/percent/update", controller.UpdateTaskPercent)
@@ -99,11 +99,11 @@ func InitRouter() {
 						}
 					}
 					s3Group.POST("/download", controller.DownloadFile)
-					s3Group.DELETE("/delate", controller.DeleteFile)
+					s3Group.POST("/delate", controller.DeleteFile)
 					s3Group.POST("/mv", controller.MoveFile)
 					s3Group.POST("/mkdir", controller.Mkdir)
 					s3Group.POST("/list", controller.FileList)
-					s3Group.DELETE("/bucketmapdel", controller.DeleteBucketMapWithTask)
+					s3Group.POST("/bucketmapdel", controller.DeleteBucketMapWithTask)
 				}
 
 			}

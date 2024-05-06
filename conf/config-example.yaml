@@ -27,13 +27,12 @@ server:
     useradmin:
       username: "useradmin"
       password: "123456hello"
-      email: "useradmin@example.com"
+      email: "3188765573@qq.com"
     s3admin:
       username: "s3admin"
       password: "123456hello"
-      email: "s3admin@example.com"
+      email: "basi-a@outlook.com"
   
-
 redis:
   redisAddr: "127.0.0.1"
   redisPort: "16379"

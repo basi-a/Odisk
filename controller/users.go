@@ -208,61 +208,11 @@ func DelUser(c *gin.Context) {
 		common.Error(c, "删除用户关联的桶以及任务失败", err)
 		return
 	}
-	// 定义一个策略来拒绝所有访问, 但允许minio console 列出桶
-	policy := `{
-		"Version": "2012-10-17",
-		"Statement": [
-			{
-				"Sid": "AllowListBucketForConsole",
-				"Effect": "Allow",
-				"Principal": {
-					"AWS": [
-						"*"
-					]
-				},
-				"Action": [
-					"s3:ListBucket"
-				],
-				"Resource": [
-					"arn:aws:s3:::` + bucketmap.BucketName + `"
-				],
-				"Condition": {
-					"StringEquals": {
-						"s3:prefix": [
-							""
-						],
-						"s3:delimiter": [
-							"/"
-						]
-					}
-				}
-			},
-			{
-				"Sid": "DenyAllObjectActions",
-				"Effect": "Deny",
-				"Principal": "*",
-				"Action": [
-					"s3:GetObject",
-					"s3:PutObject",
-					"s3:DeleteObject",
-					"s3:ListMultipartUploadParts",
-					"s3:AbortMultipartUpload"
-				],
-				"Resource": [
-					"arn:aws:s3:::` + bucketmap.BucketName + `/*"
-				]
-			}
-		]
-	}`
-	if err := g.S3core.Client.SetBucketPolicy(g.S3Ctx, bucketmap.BucketName, policy); err != nil {
+
+	if err := DeactivateBucket(bucketmap.BucketName); err != nil {
 		common.Error(c, "停用桶失败", err)
 		return
 	}
-	// if err := g.S3core.Client.RemoveBucketWithOptions(g.S3Ctx, bucketmap.BucketName, minio.RemoveBucketOptions{
-	// 	ForceDelete: true,
-	// });err != nil {
-	// 	common.Error(c, "清除并删除桶失败", err)
-	// }
 	common.Success(c, "删除成功", nil)
 }
 

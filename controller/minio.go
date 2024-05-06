@@ -476,7 +476,7 @@ func TaskAbort(c *gin.Context) {
 			common.Error(c, "取消上传失败", err)
 			return
 		}
-	} 
+	}
 	task := m.Task{}
 
 	if err := task.TaskAbort(uint(data.TaskID)); err != nil {
@@ -485,10 +485,11 @@ func TaskAbort(c *gin.Context) {
 		common.Success(c, "任务取消成功", nil)
 	}
 }
+
 // POST /s3/upload/task/del
 func TaskDel(c *gin.Context) {
 	type JsonData struct {
-		TaskID     int    `json:"taskID"`
+		TaskID int `json:"taskID"`
 	}
 	data := JsonData{}
 
@@ -532,7 +533,7 @@ func GetTaskList(c *gin.Context) {
 
 	if bucketmap.BucketName != "" {
 		// 先获取Bucketmap实例
-		if err := bucketmap.GetMap(); err != nil {
+		if err := bucketmap.GetMapByBucketName(); err != nil {
 			common.Error(c, "查找Bucketmap失败", err)
 			return
 		}
@@ -549,9 +550,10 @@ func GetTaskList(c *gin.Context) {
 	common.Success(c, "获取列表成功", bucketmap.TaskList)
 }
 
-// POST /s3/bucketmapdel
+// POST /s3/bucketmap/del
 func DeleteBucketMapWithTask(c *gin.Context) {
 	type JsonData struct {
+		UserID int `json:"userID"`
 		BucketName string `json:"bucketname"`
 	}
 	data := JsonData{}
@@ -560,16 +562,106 @@ func DeleteBucketMapWithTask(c *gin.Context) {
 		return
 	}
 	bucketmap := m.Bucketmap{
+		UserID: uint(data.UserID),
 		BucketName: data.BucketName,
 	}
 	if err := bucketmap.GetMap(); err != nil {
 		common.Error(c, "查找Bucketmap失败", err)
 		return
 	}
-
+	if err := DeactivateBucket(bucketmap.BucketName); err != nil {
+		common.Error(c, "停用桶失败", err)
+		return
+	}
 	if err := bucketmap.DeleteBucketMapWithTask(); err != nil {
 		common.Error(c, "删除失败", err)
 	} else {
 		common.Success(c, "删除成功", nil)
 	}
+}
+
+// 定义一个策略来拒绝所有访问, 但允许minio console 列出桶
+func DeactivateBucket(bucketname string) error {
+	policy := `{
+		"Version": "2012-10-17",
+		"Statement": [
+			{
+				"Sid": "AllowListBucketForConsole",
+				"Effect": "Allow",
+				"Principal": {
+					"AWS": [
+						"*"
+					]
+				},
+				"Action": [
+					"s3:ListBucket"
+				],
+				"Resource": [
+					"arn:aws:s3:::` + bucketname + `"
+				],
+				"Condition": {
+					"StringEquals": {
+						"s3:prefix": [
+							""
+						],
+						"s3:delimiter": [
+							"/"
+						]
+					}
+				}
+			},
+			{
+				"Sid": "DenyAllObjectActions",
+				"Effect": "Deny",
+				"Principal": "*",
+				"Action": [
+					"s3:GetObject",
+					"s3:PutObject",
+					"s3:DeleteObject",
+					"s3:ListMultipartUploadParts",
+					"s3:AbortMultipartUpload"
+				],
+				"Resource": [
+					"arn:aws:s3:::` + bucketname + `/*"
+				]
+			}
+		]
+	}`
+	if err := g.S3core.Client.SetBucketPolicy(g.S3Ctx, bucketname, policy); err != nil {
+		return err
+	}
+	return nil
+}
+
+// GET /s3/bucketmap/del
+func GetMapList(c *gin.Context) {
+	List, err := m.GetMapList()
+	if err != nil {
+		common.Error(c, "获取失败", err)
+		return
+	}
+	common.Success(c, "获取成功", List)
+}
+
+// POST /s3/bucketmap/update
+func UpdateBucketmap(c *gin.Context) {
+	type JsonData struct {
+		UserID        int    `json:"userID"`
+		BucketName    string `json:"bucketname"`
+		NewBucketName string `json:"newBucketname"`
+	}
+	data := JsonData{}
+	if err := c.ShouldBindJSON(&data); err != nil {
+		common.Error(c, "绑定失败", err)
+		return
+	}
+	bucketmap := m.Bucketmap{
+		UserID:     uint(data.UserID),
+		BucketName: data.BucketName,
+	}
+	if err := bucketmap.UpdateMap(data.NewBucketName); err != nil {
+		common.Error(c, "更新失败", err)
+		return
+	}
+	common.Success(c, "更新成功", nil)
 }

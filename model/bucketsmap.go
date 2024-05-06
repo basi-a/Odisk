@@ -50,6 +50,37 @@ func (bucketmap *Bucketmap) GetMap() error {
 
 	return g.DB.Where("user_id=?", bucketmap.UserID).First(&bucketmap).Error
 }
+func (bucketmap *Bucketmap) GetMapByBucketName() error {
+
+	return g.DB.Where("bucket_name=?", bucketmap.BucketName).First(&bucketmap).Error
+}
+func GetMapList() ([]Bucketmap, error)  {
+	var mapList []Bucketmap
+	if err := g.DB.Find(&mapList).Error; err != nil {
+		return []Bucketmap{}, err
+	}
+	return mapList, nil
+}
+
+func (bucketmap *Bucketmap) UpdateMap(NewBucketName string) error {
+	// 开始事务
+	tx := g.DB.Begin()
+
+	// 更新关联的Task的BucketName
+	if err := tx.Model(&Task{}).Where("bucket_name = ?", bucketmap.BucketName).Update("bucket_name", NewBucketName).Error; err != nil {
+		tx.Rollback() // 出错则回滚
+		return err
+	}
+
+	// 更新Bucketmap的bucket_name
+	if err := tx.Model(&bucketmap).Where("user_id = ?", bucketmap.UserID).Update("bucket_name", NewBucketName).Error; err != nil {
+		tx.Rollback() // 更新Bucketmap出错也回滚
+		return err
+	}
+
+	// 提交事务
+	return tx.Commit().Error
+}
 
 func (bucketmap *Bucketmap) DeleteBucketMapWithTask() error {
 	// 使用事务确保操作安全

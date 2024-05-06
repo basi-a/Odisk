@@ -103,7 +103,13 @@ func InitRouter() {
 					s3Group.POST("/mv", controller.MoveFile)
 					s3Group.POST("/mkdir", controller.Mkdir)
 					s3Group.POST("/list", controller.FileList)
-					s3Group.POST("/bucketmapdel", controller.DeleteBucketMapWithTask)
+					mapGroup := s3Group.Group("/bucketmap")
+					{
+						mapGroup.POST("/del", controller.DeleteBucketMapWithTask)
+						mapGroup.GET("/list", controller.GetMapList)
+						mapGroup.POST("/update", controller.UpdateBucketmap)
+					}
+					
 				}
 
 			}

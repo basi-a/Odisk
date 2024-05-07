@@ -88,9 +88,11 @@ func shutdownHandler(ctx context.Context) {
 
 	g.Producer.Stop()
 
-	// for _, consumer := range g.Consumers {
-	// 	consumer.Stop()
-	// }
+	db, _ := g.DB.DB()
+	err := db.Close()
+	if err != nil {
+		log.Println(err)
+	}
 	for _, v := range g.Consumers {
 		v.Stop()
 	}

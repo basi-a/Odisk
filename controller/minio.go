@@ -33,10 +33,17 @@ func UploadFile(c *gin.Context) {
 	type JsonData struct {
 		ObjectName string `json:"objectname"`
 		BucketName string `json:"bucketname"`
+		Size       int    `json:"size"`
 	}
 	data := JsonData{}
 	if err := c.ShouldBindJSON(&data); err != nil {
 		common.Error(c, "绑定失败", err)
+		return
+	}
+	
+	futureSize := g.GetCurrentSize(data.BucketName) + data.Size
+	if futureSize > g.MaxBucketSize() {
+		common.Error(c, "上传失败, 总大小超出限制", nil)
 		return
 	}
 	presignedURL, err := g.S3core.Client.PresignedPutObject(g.S3Ctx, data.BucketName, data.ObjectName, UploadExpiry)
@@ -55,11 +62,18 @@ func MultipartUploadCreate(c *gin.Context) {
 		BucketName    string `json:"bucketname"`
 		ObjectName    string `json:"objectname"`
 		MaxPartNumber int    `json:"maxPartNumber"` // min 1
+		Size          int    `json:"size"`
 	}
 	data := JsonData{}
 
 	if err := c.ShouldBindJSON(&data); err != nil {
 		common.Error(c, "绑定失败", err)
+		return
+	}
+
+	futureSize := g.GetCurrentSize(data.BucketName) + data.Size
+	if futureSize > g.MaxBucketSize() {
+		common.Error(c, "上传失败, 总大小超出限制", nil)
 		return
 	}
 	uploadID, err := g.S3core.NewMultipartUpload(g.S3Ctx, data.BucketName, data.ObjectName, minio.PutObjectOptions{})
@@ -283,6 +297,31 @@ func Mkdir(c *gin.Context) {
 	}
 
 	common.Success(c, "目录创建成功", data.DirName)
+}
+// POST /s3/size
+func CurrentSize(c *gin.Context) {
+	type JsonData struct {
+		BucketName string `json:"bucketname"`
+	}
+	data := JsonData{}
+
+	if err := c.ShouldBindJSON(&data); err != nil {
+		common.Error(c, "绑定失败", err)
+		return
+	}
+	currentBucketSize := g.GetCurrentSize(data.BucketName)
+	maxBucketSize := g.MaxBucketSize()
+	// log.Println(maxBucketSize)
+	type Result struct {
+		Max     int `json:"max"`
+		Current int `json:"current"`
+	}
+	result := Result{
+		Max:     maxBucketSize,
+		Current: currentBucketSize,
+	}
+
+	common.Success(c, "读取容量成功", result)
 }
 
 // post /s3/list
@@ -553,7 +592,7 @@ func GetTaskList(c *gin.Context) {
 // POST /s3/bucketmap/del
 func DeleteBucketMapWithTask(c *gin.Context) {
 	type JsonData struct {
-		UserID int `json:"userID"`
+		UserID     int    `json:"userID"`
 		BucketName string `json:"bucketname"`
 	}
 	data := JsonData{}
@@ -562,7 +601,7 @@ func DeleteBucketMapWithTask(c *gin.Context) {
 		return
 	}
 	bucketmap := m.Bucketmap{
-		UserID: uint(data.UserID),
+		UserID:     uint(data.UserID),
 		BucketName: data.BucketName,
 	}
 	if err := bucketmap.GetMap(); err != nil {

@@ -93,8 +93,8 @@ type MinioConfig struct {
 	AccessKeyID     string `yaml:"accessKeyID"`
 	SecretAccessKey string `yaml:"secretAccessKey"`
 	UseSSL          bool   `yaml:"usessl"`
-	// BucketName      string `yaml:"bucketName"`
 	Location        string `yaml:"location"`
+	BucketMaxSize   int    `yaml:"bucketMaxSize"`
 }
 type NsqConfig struct {
 	Port struct {
@@ -108,7 +108,7 @@ type NsqConfig struct {
 		} `mapstructure:"nsqd"`
 	} `mapstructure:"port"`
 	Nsqlookupd []string            `yaml:"nsqlookupd"`
-	Nsqd       string            `yaml:"nsqd"`
+	Nsqd       string              `yaml:"nsqd"`
 	Topics     map[string][]string `mapstructure:"topics"`
 }
 
@@ -148,6 +148,5 @@ func InitConfig() {
 	if err := viper.Unmarshal(&Config); err != nil {
 		log.Fatalf("Error unmarshalling config: %v", err)
 	}
-	
 
 }

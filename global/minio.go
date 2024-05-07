@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"log"
+	"math"
 	"net/http"
 	"os"
 
@@ -18,6 +19,12 @@ var S3Ctx context.Context
 func InitMinio() {
 	S3Ctx = context.Background()
 	RetryWithExponentialBackoff(UseMinio, "Minio Connection", 5)
+}
+
+func MaxBucketSize() int {
+	max := Config.Minio.BucketMaxSize* int(math.Pow(2,30))
+	// log.Println(max)
+	return max
 }
 
 func UseMinio() error {
@@ -55,7 +62,7 @@ func UseMinio() error {
 
 func MakeBucket(bucketName string) error {
 
-	err := S3core.MakeBucket(S3Ctx, bucketName, minio.MakeBucketOptions{
+	err := S3core.Client.MakeBucket(S3Ctx, bucketName, minio.MakeBucketOptions{
 		Region: Config.Minio.Location,
 	})
 	if err != nil {
@@ -70,4 +77,15 @@ func MakeBucket(bucketName string) error {
 		log.Printf("Successfully created %s\n", bucketName)
 	}
 	return nil
+}
+
+func GetCurrentSize(bucketName string) int{
+	ch := S3core.Client.ListObjects(S3Ctx, bucketName, minio.ListObjectsOptions{
+		Recursive: false,
+	})
+	var currentBucketSize int
+	for v := range ch {
+		currentBucketSize += int(v.Size)
+	}
+	return currentBucketSize
 }

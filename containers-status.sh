@@ -55,12 +55,30 @@ check_container_health() {
 format_output() {
     printf "%-30s\t%-12s\n" "$1" "$2"
 }
-echo "容器运行状态:"
-# 遍历容器数组并检查每个容器的状态和健康状况
-for container_name in "${CONTAINERS_NAME[@]}"; do
-    check_container_status "$container_name"
-done
-echo "容器健康状态:"
-for container_name in "${CONTAINERS_NAME[@]}"; do
-    check_container_health "$container_name"
-done
+
+# 添加参数处理逻辑
+if [ "$#" -ne 1 ]; then
+    echo "Usage: $0 {status|health}"
+    exit 1
+fi
+
+check_type=$1
+
+case $check_type in
+    status)
+        echo "容器运行状态:"
+        for container_name in "${CONTAINERS_NAME[@]}"; do
+            check_container_status "$container_name"
+        done
+        ;;
+    health)
+        echo "容器健康状态:"
+        for container_name in "${CONTAINERS_NAME[@]}"; do
+            check_container_health "$container_name"
+        done
+        ;;
+    *)
+        echo "Invalid option. Please choose 'status' or 'health'."
+        exit 1
+        ;;
+esac

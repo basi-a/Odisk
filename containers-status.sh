@@ -27,6 +27,8 @@ HEALTH_CHECK_GROUP=(
     odisk-minio2
     odisk-minio3
     odisk-minio4
+    odisk-keepalived_haproxy1
+    odisk-keepalived_haproxy2
     odisk-nsqlookupd
     odisk-nsqd
     odisk-nginx

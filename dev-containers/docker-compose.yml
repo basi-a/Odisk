@@ -50,6 +50,11 @@ x-keepalived-haproxy-common: &keepalived-haproxy-common
   build:
     context: ./haproxy-keepalived/.
   image: odisk/keepalived-haproxy:latest
+  healthcheck:
+    test: ["CMD", "curl", "-u" ,"admin:admin","-I","http://172.40.20.100:8080/admin"]
+    interval: 10s
+    retries: 10
+    timeout: 5s
   depends_on: 
     minio1:
       condition: service_healthy

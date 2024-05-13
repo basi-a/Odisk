@@ -66,13 +66,13 @@ check_type=$1
 
 case $check_type in
     status)
-        echo "容器运行状态:"
+        echo "  容器运行状态:"
         for container_name in "${CONTAINERS_NAME[@]}"; do
             check_container_status "$container_name"
         done
         ;;
     health)
-        echo "容器健康状态:"
+        echo "  容器健康状态:"
         for container_name in "${CONTAINERS_NAME[@]}"; do
             check_container_health "$container_name"
         done

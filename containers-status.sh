@@ -53,12 +53,12 @@ check_container_health() {
 
 # 输出格式化的函数
 format_output() {
-    printf "%-30s\t%-12s\n" "$1" "$2"
+    printf "  %-30s\t%-12s\n" "$1" "$2"
 }
 
 # 添加参数处理逻辑
 if [ "$#" -ne 1 ]; then
-    echo "Usage: $0 {status|health}"
+    echo "  Usage: $0 {status|health}"
     exit 1
 fi
 

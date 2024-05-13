@@ -28,7 +28,7 @@ const (
 )
 
 // UploadFile generates a pre-signed URL for uploading a file.
-// POST /s3/upload/small
+// POST /v1/s3/upload/small
 func UploadFile(c *gin.Context) {
 	type JsonData struct {
 		ObjectName string `json:"objectname"`
@@ -51,11 +51,11 @@ func UploadFile(c *gin.Context) {
 		common.Error(c, "生成预签名URL失败", err)
 		return
 	} else {
-		common.Success(c, "Successlly generated presigned URL", map[string]string{"uploadUrl": presignedURL.String()})
+		common.Success(c, "成功生成预签名url", map[string]string{"uploadUrl": presignedURL.String()})
 	}
 }
 
-// POST /s3/upload/big/create
+// POST /v1/s3/upload/big/create
 func MultipartUploadCreate(c *gin.Context) {
 
 	type JsonData struct {
@@ -107,10 +107,10 @@ func MultipartUploadCreate(c *gin.Context) {
 		UploadID:      uploadID,
 		PresignedURLs: presignedURLs,
 	}
-	common.Success(c, "Successlly generated presigned URL", result)
+	common.Success(c, "成功生成预签名url", result)
 }
 
-// POST /s3/upload/big/finish
+// POST /v1/s3/upload/big/finish
 func MultipartUploadFinish(c *gin.Context) {
 	type JsonData struct {
 		BucketName    string   `json:"bucketname"`
@@ -133,7 +133,7 @@ func MultipartUploadFinish(c *gin.Context) {
 			ETag:       data.ETags[i-1],
 		})
 	}
-	// log.Println(len(parts))
+
 	uploadInfo, err := g.S3core.CompleteMultipartUpload(g.S3Ctx, data.BucketName, data.ObjectName, data.UploadID, parts, minio.PutObjectOptions{})
 	if err != nil {
 		common.Error(c, "合并失败", err)
@@ -142,7 +142,7 @@ func MultipartUploadFinish(c *gin.Context) {
 	}
 }
 
-// POST /s3/download
+// POST /v1/s3/download
 func DownloadFile(c *gin.Context) {
 	type JsonData struct {
 		ObjectName     string        `json:"objectname"`
@@ -177,10 +177,10 @@ func DownloadFile(c *gin.Context) {
 		}
 	}
 
-	common.Success(c, "Successlly generated presigned URL", map[string]string{"downloadUrl": presignedURL.String()})
+	common.Success(c, "成功生成预签名url", map[string]string{"downloadUrl": presignedURL.String()})
 }
 
-// DELETE /s3/delate
+// POST /v1/s3/delate
 func DeleteFile(c *gin.Context) {
 
 	type JsonData struct {
@@ -201,7 +201,7 @@ func DeleteFile(c *gin.Context) {
 	common.Success(c, "文件删除成功", nil)
 }
 
-// POST /s3/mv
+// POST /v1/s3/mv
 func MoveFile(c *gin.Context) {
 	type JsonData struct {
 		SrcBucketName  string `json:"srcbucketname"`
@@ -258,7 +258,7 @@ func MoveFile(c *gin.Context) {
 	common.Success(c, "文件移动(重命名)成功", nil)
 }
 
-// POST /s3/mkdir
+// POST /v1/s3/mkdir
 func Mkdir(c *gin.Context) {
 
 	type JsonData struct {
@@ -298,7 +298,7 @@ func Mkdir(c *gin.Context) {
 
 	common.Success(c, "目录创建成功", data.DirName)
 }
-// POST /s3/size
+// POST /v1/s3/size
 func CurrentSize(c *gin.Context) {
 	type JsonData struct {
 		BucketName string `json:"bucketname"`
@@ -324,7 +324,7 @@ func CurrentSize(c *gin.Context) {
 	common.Success(c, "读取容量成功", result)
 }
 
-// post /s3/list
+// POST /v1/s3/list
 func FileList(c *gin.Context) {
 	type JsonData struct {
 		BucketName string `json:"bucketname"`
@@ -400,307 +400,4 @@ func FileList(c *gin.Context) {
 
 	// 返回结果
 	common.Success(c, "获取文件列表成功", fileInfos)
-}
-
-// PUT /s3/upload/task/add
-func TaskAdd(c *gin.Context) {
-	type JsonData struct {
-		BucketName string `json:"bucketname"`
-		ObjectName string `json:"objectname"`
-		FileName   string `json:"filename"`
-		UploadID   string `json:"uploadID"` // 小文件没这个
-		Size       uint   `json:"size"`
-	}
-	data := JsonData{}
-
-	if err := c.ShouldBindJSON(&data); err != nil {
-		common.Error(c, "绑定失败", err)
-		return
-	}
-	task := m.Task{
-		BucketName: data.BucketName,
-		ObjectName: data.ObjectName,
-		FileName:   data.FileName,
-		UploadID:   data.UploadID,
-		Size:       data.Size,
-	}
-	if err := task.TaskAdd(); err != nil {
-		// log.Println(task)
-		common.Error(c, "记录任务失败", err)
-	} else {
-		common.Success(c, "记录任务成功", map[string]uint{
-			"taskID": task.ID,
-		})
-	}
-}
-
-// PUT /s3/upload/task/percent/update
-func UpdateTaskPercent(c *gin.Context) {
-	type JsonData struct {
-		TaskID  int `json:"taskID"`
-		Percent int `json:"percent"`
-	}
-	data := JsonData{}
-
-	if err := c.ShouldBindJSON(&data); err != nil {
-		common.Error(c, "绑定失败", err)
-		return
-	}
-	key := fmt.Sprintf("TaskPercent: %d", data.TaskID)
-	SaveSession(c, key, data.Percent)
-	common.Success(c, "更新成功", nil)
-}
-
-// GET /s3/upload/task/percent/:taskID
-func GetTaskPercent(c *gin.Context) {
-	taskID, err := strconv.Atoi(c.Param("taskID"))
-	if err != nil {
-		common.Error(c, "进度获取失败", err)
-		return
-	}
-	// log.Println(taskID)
-	key := fmt.Sprintf("TaskPercent: %d", taskID)
-	value := ReadSession(c, key)
-	// log.Println(value)
-	if percent, ok := value.(int); ok {
-		common.Success(c, "进度获取成功", map[string]int{
-			"percent": percent,
-		})
-	} else {
-		common.Error(c, "获取失败", nil)
-	}
-}
-
-// PUT /s3/upload/task/done
-func TaskDone(c *gin.Context) {
-	type JsonData struct {
-		TaskID int `json:"taskID"`
-	}
-	data := JsonData{}
-
-	if err := c.ShouldBindJSON(&data); err != nil {
-		common.Error(c, "绑定失败", err)
-		return
-	}
-	task := m.Task{}
-
-	if err := task.TaskDone(uint(data.TaskID)); err != nil {
-		common.Error(c, "任务状态标记失败", err)
-
-	} else {
-		common.Success(c, "任务状态标记成功", task.Status)
-		key := fmt.Sprintf("TaskPercent: %d", task.ID)
-		DelSession(c, key)
-	}
-}
-
-// POST /s3/upload/task/abort
-func TaskAbort(c *gin.Context) {
-	type JsonData struct {
-		BucketName string `json:"bucketname"`
-		ObjectName string `json:"objectname"`
-		UploadID   string `json:"uploadID"`
-		TaskID     int    `json:"taskID"`
-	}
-	data := JsonData{}
-
-	if err := c.ShouldBindJSON(&data); err != nil {
-		common.Error(c, "绑定失败", err)
-		return
-	}
-	// log.Println(data)
-	if data.UploadID != "----" {
-
-		if err := g.S3core.AbortMultipartUpload(g.S3Ctx, data.BucketName, data.ObjectName, data.UploadID); err != nil {
-			common.Error(c, "取消上传失败", err)
-			return
-		}
-	}
-	task := m.Task{}
-
-	if err := task.TaskAbort(uint(data.TaskID)); err != nil {
-		common.Error(c, "任务取消失败", err)
-	} else {
-		common.Success(c, "任务取消成功", nil)
-	}
-}
-
-// POST /s3/upload/task/del
-func TaskDel(c *gin.Context) {
-	type JsonData struct {
-		TaskID int `json:"taskID"`
-	}
-	data := JsonData{}
-
-	if err := c.ShouldBindJSON(&data); err != nil {
-		common.Error(c, "绑定失败", err)
-		return
-	}
-	task := m.Task{}
-	if err := task.LocateTask(uint(data.TaskID)); err != nil {
-		common.Error(c, "任务定位失败", err)
-		return
-	}
-	// log.Println(task)
-	if task.Status == "uploading" {
-		common.Error(c, "上传中任务不能删除, 请先取消", nil)
-		return
-	}
-	if err := task.TaskDel(uint(data.TaskID)); err != nil {
-		common.Error(c, "任务取消失败", err)
-		return
-	} else {
-		common.Success(c, "任务取消成功", nil)
-	}
-}
-
-// POST /s3/upload/task/list 这个列表要从数据库获取，minio不维护这个
-func GetTaskList(c *gin.Context) {
-	type JsonData struct {
-		BucketName string `json:"bucketname"`
-	}
-	data := JsonData{}
-
-	if err := c.ShouldBindJSON(&data); err != nil {
-		common.Error(c, "绑定失败", err)
-		return
-	}
-	bucketmap := m.Bucketmap{
-		BucketName: data.BucketName,
-		TaskList:   make([]m.Task, 0),
-	}
-
-	if bucketmap.BucketName != "" {
-		// 先获取Bucketmap实例
-		if err := bucketmap.GetMapByBucketName(); err != nil {
-			common.Error(c, "查找Bucketmap失败", err)
-			return
-		}
-		if err := bucketmap.GetTaskList(); err != nil {
-			common.Error(c, "获取列表失败", err)
-			return
-		}
-	} else {
-		if err := bucketmap.GetTaskListAll(); err != nil {
-			common.Error(c, "获取列表失败", err)
-			return
-		}
-	}
-	common.Success(c, "获取列表成功", bucketmap.TaskList)
-}
-
-// POST /s3/bucketmap/del
-func DeleteBucketMapWithTask(c *gin.Context) {
-	type JsonData struct {
-		UserID     int    `json:"userID"`
-		BucketName string `json:"bucketname"`
-	}
-	data := JsonData{}
-	if err := c.ShouldBindJSON(&data); err != nil {
-		common.Error(c, "绑定失败", err)
-		return
-	}
-	bucketmap := m.Bucketmap{
-		UserID:     uint(data.UserID),
-		BucketName: data.BucketName,
-	}
-	if err := bucketmap.GetMap(); err != nil {
-		common.Error(c, "查找Bucketmap失败", err)
-		return
-	}
-	if err := DeactivateBucket(bucketmap.BucketName); err != nil {
-		common.Error(c, "停用桶失败", err)
-		return
-	}
-	if err := bucketmap.DeleteBucketMapWithTask(); err != nil {
-		common.Error(c, "删除失败", err)
-	} else {
-		common.Success(c, "删除成功", nil)
-	}
-}
-
-// 定义一个策略来拒绝所有访问, 但允许minio console 列出桶
-func DeactivateBucket(bucketname string) error {
-	policy := `{
-		"Version": "2012-10-17",
-		"Statement": [
-			{
-				"Sid": "AllowListBucketForConsole",
-				"Effect": "Allow",
-				"Principal": {
-					"AWS": [
-						"*"
-					]
-				},
-				"Action": [
-					"s3:ListBucket"
-				],
-				"Resource": [
-					"arn:aws:s3:::` + bucketname + `"
-				],
-				"Condition": {
-					"StringEquals": {
-						"s3:prefix": [
-							""
-						],
-						"s3:delimiter": [
-							"/"
-						]
-					}
-				}
-			},
-			{
-				"Sid": "DenyAllObjectActions",
-				"Effect": "Deny",
-				"Principal": "*",
-				"Action": [
-					"s3:GetObject",
-					"s3:PutObject",
-					"s3:DeleteObject",
-					"s3:ListMultipartUploadParts",
-					"s3:AbortMultipartUpload"
-				],
-				"Resource": [
-					"arn:aws:s3:::` + bucketname + `/*"
-				]
-			}
-		]
-	}`
-	if err := g.S3core.Client.SetBucketPolicy(g.S3Ctx, bucketname, policy); err != nil {
-		return err
-	}
-	return nil
-}
-
-// GET /s3/bucketmap/del
-func GetMapList(c *gin.Context) {
-	List, err := m.GetMapList()
-	if err != nil {
-		common.Error(c, "获取失败", err)
-		return
-	}
-	common.Success(c, "获取成功", List)
-}
-
-// POST /s3/bucketmap/update
-func UpdateBucketmap(c *gin.Context) {
-	type JsonData struct {
-		UserID        int    `json:"userID"`
-		BucketName    string `json:"bucketname"`
-		NewBucketName string `json:"newBucketname"`
-	}
-	data := JsonData{}
-	if err := c.ShouldBindJSON(&data); err != nil {
-		common.Error(c, "绑定失败", err)
-		return
-	}
-	bucketmap := m.Bucketmap{
-		UserID:     uint(data.UserID),
-		BucketName: data.BucketName,
-	}
-	if err := bucketmap.UpdateMap(data.NewBucketName); err != nil {
-		common.Error(c, "更新失败", err)
-		return
-	}
-	common.Success(c, "更新成功", nil)
 }

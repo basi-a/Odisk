@@ -29,7 +29,6 @@ func MaxBucketSize() int {
 
 func UseMinio() error {
 	var err error
-	// 假设您有一个或多个CA证书文件（例如.crt文件）
 	certPool := x509.NewCertPool()
 
 	// 从文件中读取证书
@@ -88,4 +87,57 @@ func GetCurrentSize(bucketName string) int{
 		currentBucketSize += int(v.Size)
 	}
 	return currentBucketSize
+}
+
+// 定义一个策略来拒绝所有访问, 但允许minio console 列出桶
+func DeactivateBucket(bucketname string) error {
+	policy := `{
+		"Version": "2012-10-17",
+		"Statement": [
+			{
+				"Sid": "AllowListBucketForConsole",
+				"Effect": "Allow",
+				"Principal": {
+					"AWS": [
+						"*"
+					]
+				},
+				"Action": [
+					"s3:ListBucket"
+				],
+				"Resource": [
+					"arn:aws:s3:::` + bucketname + `"
+				],
+				"Condition": {
+					"StringEquals": {
+						"s3:prefix": [
+							""
+						],
+						"s3:delimiter": [
+							"/"
+						]
+					}
+				}
+			},
+			{
+				"Sid": "DenyAllObjectActions",
+				"Effect": "Deny",
+				"Principal": "*",
+				"Action": [
+					"s3:GetObject",
+					"s3:PutObject",
+					"s3:DeleteObject",
+					"s3:ListMultipartUploadParts",
+					"s3:AbortMultipartUpload"
+				],
+				"Resource": [
+					"arn:aws:s3:::` + bucketname + `/*"
+				]
+			}
+		]
+	}`
+	if err := S3core.Client.SetBucketPolicy(S3Ctx, bucketname, policy); err != nil {
+		return err
+	}
+	return nil
 }

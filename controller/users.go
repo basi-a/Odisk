@@ -157,11 +157,12 @@ func EmailVerifyCode(c *gin.Context) {
 	}
 
 	jsonData, _ = json.Marshal(sendEmailData)
+	// 写入消息队列，等待邮件发送
 	if err := g.ProduceMsg("email", "email", jsonData); err != nil {
 		common.Error(c, "发送邮件错误", err)
 	} else {
 		SaveSession(c, "EmailVerifyCode", data)
-		// log.Println(data)
+
 		common.Success(c, "发送邮件成功, 请稍等", nil)
 	}
 }
@@ -176,7 +177,7 @@ func ListUsers(c *gin.Context) {
 	}
 }
 
-// POST /v1/users/delete auth 组 这个请求完必须 请求
+// POST /v1/users/delete auth 组 
 func DelUser(c *gin.Context) {
 	type JsonData struct {
 		Email string `json:"email"`
@@ -209,7 +210,7 @@ func DelUser(c *gin.Context) {
 		return
 	}
 
-	if err := DeactivateBucket(bucketmap.BucketName); err != nil {
+	if err := g.DeactivateBucket(bucketmap.BucketName); err != nil {
 		common.Error(c, "停用桶失败", err)
 		return
 	}
@@ -289,7 +290,7 @@ func GetUserInfo(c *gin.Context) {
 	}
 }
 
-// GET /logout
+// GET /v1/logout
 func Logout(c *gin.Context) {
 	DelSession(c, "userInfo")
 }

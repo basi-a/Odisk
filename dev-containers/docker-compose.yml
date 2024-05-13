@@ -71,7 +71,6 @@ x-server-common: &server-common
   image: odisk/server:latest
   volumes:
     - ./server/config/config.yaml:/etc/odisk/config.yaml
-    - ./log/odisk:/var/log/odisk
   expose: 
     - "7000"
   command: /opt/odisk

@@ -18,36 +18,7 @@ import (
 func InitRouter() {
 	log.Println("Route is initializing ...")
 	defer log.Println("Route initialization completed.")
-	trusted_proxies := g.Config.Server.TrustedProxies
-	mode := g.Config.Server.Mode
-	gin.DisableConsoleColor()
-
-	setMode(mode)
-
-	r := gin.Default()
-	if mode == "debug" {
-		// default is "debug/pprof"
-		pprof.Register(r)
-		r.GET("/mime", func(ctx *gin.Context) {
-			ctx.JSON(http.StatusOK, utils.GetAllMime())
-		})
-	}
-
-	// set trusted proxys
-	err := r.SetTrustedProxies(trusted_proxies)
-	if err != nil {
-		log.Println("SetTrustedProxies error:", err)
-	}
-	r.Use(sessions.Sessions("session_id", g.Store))
-
-	// 配置CORS中间件
-	config := cors.DefaultConfig()
-	config.AllowOrigins = append(config.AllowOrigins, g.Config.Server.CROS.AllowOrigins...)
-	config.AllowCredentials = g.Config.Server.CROS.AllowCredentials
-
-	// 将CORS中间件添加到路由引擎中
-	r.Use(cors.New(config))
-
+	r := engineBasicCfgOps()
 	pingGroup := r.Group("/")
 	{
 		// 使用路由组处理 HEAD 和 GET 请求
@@ -120,6 +91,39 @@ func InitRouter() {
 	}
 
 	g.RouterEngine = r
+}
+
+func engineBasicCfgOps() *gin.Engine{
+	trusted_proxies := g.Config.Server.TrustedProxies
+	mode := g.Config.Server.Mode
+	gin.DisableConsoleColor()
+
+	setMode(mode)
+
+	r := gin.Default()
+	if mode == "debug" {
+		// default is "debug/pprof"
+		pprof.Register(r)
+		r.GET("/mime", func(ctx *gin.Context) {
+			ctx.JSON(http.StatusOK, utils.GetAllMime())
+		})
+	}
+
+	// 设置信任代理
+	err := r.SetTrustedProxies(trusted_proxies)
+	if err != nil {
+		log.Println("SetTrustedProxies error:", err)
+	}
+	r.Use(sessions.Sessions("session_id", g.Store))
+
+	// 配置CORS中间件
+	config := cors.DefaultConfig()
+	config.AllowOrigins = append(config.AllowOrigins, g.Config.Server.CROS.AllowOrigins...)
+	config.AllowCredentials = g.Config.Server.CROS.AllowCredentials
+
+	// 将CORS中间件添加到路由引擎中
+	r.Use(cors.New(config))
+	return r
 }
 
 func setMode(mode string) {

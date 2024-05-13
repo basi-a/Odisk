@@ -13,8 +13,8 @@ type Bucketmap struct {
 	UserID     uint   `gorm:"uniqueIndex"`
 	BucketName string `gorm:"uniqueIndex"`
 
-	// 建立一对多关联关系，添加 onDelete: ReferentialAction.Cascade
-	TaskList []Task `gorm:"foreignKey:BucketName;references:BucketName"`//;constraint:OnDelete:CASCADE"`
+	// 建立一对多关联关系
+	TaskList []Task `gorm:"foreignKey:BucketName;references:BucketName"`
 }
 
 type Task struct {
@@ -38,7 +38,6 @@ func AutoMigrateBucketmapAndTaskList() {
 }
 
 func (bucketmap *Bucketmap) SaveMap() error {
-
 	return g.DB.Create(&bucketmap).Error
 }
 

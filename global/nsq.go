@@ -100,7 +100,7 @@ func CreateAndStartNsqConsumer() error {
 }
 
 func ConsumeMsg(m *nsq.Message) error {
-	// log.Println(string(m.Body))
+
 	msg := new(Message)
 	if err := json.Unmarshal(m.Body, &msg); err != nil {
 		return err

@@ -22,9 +22,9 @@ func InitGorm() {
 	}
 }
 
-func GetDB() *gorm.DB {
-	return DB
-}
+// func GetDB() *gorm.DB {
+// 	return DB
+// }
 
 func UseMysql() error {
 

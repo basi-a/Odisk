@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Email Verification</title>
+  <title>验证邮箱</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -36,14 +36,13 @@
 <body>
   <div class="container">
     <div class="header">
-      <h1>Verify your email address</h1>
+      <h1>验证您的邮箱地址</h1>
     </div>
     <div class="content">
-      <p>We have received a request to verify the following email address:</p>
+      <p>我们收到了验证以下电子邮件地址的请求:</p>
       <p><strong>{{.Email}}</strong></p>
-      <p>To confirm this email address belongs to you, please use the code provided below:</p>
-      <p><strong>Code: {{.Code}}</strong></p>
-      <p>If this code is incorrect, someone may have mistakenly entered your email address. Save this code for future use, unless you need to take immediate action.</p>
+      <p>如果确认此电子邮件地址属于您，请使用下面提供的代码:</p>
+      <p><strong>{{.Code}}</strong></p>
     </div>
 
   </div>

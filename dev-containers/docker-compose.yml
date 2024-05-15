@@ -19,9 +19,12 @@ x-common: &common
       - "nsqd:172.40.20.25"
       - "nsqadmin:172.40.20.26"
       - "keepalived.vip:172.40.20.100"
-  volumes: 
-    - /etc/localtime:/etc/localtime:ro
+  environment:
+    TZ: Asia/Shanghai
   restart: always
+  dns:
+   - 1.1.1.1
+   - 172.40.20.1
 x-minio-common: &minio-common
   <<: *common
   build:

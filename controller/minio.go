@@ -40,7 +40,7 @@ func UploadFile(c *gin.Context) {
 		common.Error(c, "绑定失败", err)
 		return
 	}
-	
+
 	futureSize := g.GetCurrentSize(data.BucketName) + data.Size
 	if futureSize > g.MaxBucketSize() {
 		common.Error(c, "上传失败, 总大小超出限制", nil)
@@ -219,21 +219,24 @@ func MoveFile(c *gin.Context) {
 		common.Error(c, "源文件不存在或无法访问", err)
 		return
 	}
+
 	// Split the destination object name into segments
 	destSegments := strings.Split(data.DestObjectName, "/")
+	if len(destSegments) > 1 {
+		// Check if the target directory exists
+		parentDir := strings.Join(destSegments[:len(destSegments)-1], "/")
+		if !strings.HasSuffix(parentDir, "/") {
+			parentDir += "/" // Ensure each directory segment ends with a slash
+		}
 
-	// Check if the target directory exists
-	parentDir := strings.Join(destSegments[:len(destSegments)-1], "/")
-	if !strings.HasSuffix(parentDir, "/") {
-		parentDir += "/" // Ensure each directory segment ends with a slash
+		_, err = g.S3core.Client.StatObject(g.S3Ctx, data.SrcBucketName, parentDir, minio.StatObjectOptions{})
+		if err != nil {
+			// Target directory doesn't exist, return an error message
+			common.Error(c, "目标目录:"+parentDir+" , 不存在, 请先创建", err)
+			return
+		}
 	}
 
-	_, err = g.S3core.Client.StatObject(g.S3Ctx, data.SrcBucketName, parentDir, minio.StatObjectOptions{})
-	if err != nil {
-		// Target directory doesn't exist, return an error message
-		common.Error(c, "目标目录:"+parentDir+" , 不存在, 请先创建", err)
-		return
-	}
 	copyDest := minio.CopyDestOptions{
 		Bucket: data.SrcBucketName,
 		Object: data.DestObjectName,
@@ -242,7 +245,7 @@ func MoveFile(c *gin.Context) {
 		Bucket: data.SrcBucketName,
 		Object: data.SrcObjectName,
 	}
-
+	
 	_, err = g.S3core.Client.CopyObject(g.S3Ctx, copyDest, copySrc)
 	if err != nil {
 		common.Error(c, "复制文件失败", err)
@@ -298,6 +301,7 @@ func Mkdir(c *gin.Context) {
 
 	common.Success(c, "目录创建成功", data.DirName)
 }
+
 // POST /v1/s3/size
 func CurrentSize(c *gin.Context) {
 	type JsonData struct {

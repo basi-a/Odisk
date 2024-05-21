@@ -60,7 +60,7 @@ database:
     dbPoolConns: 2048
 
 minio:
-  endpoint: "172.40.20.100:9000"
+  endpoint: "172.30.20.100:9000"
   accessKeyID: "minioadmin"
   secretAccessKey: "minioadmin"
   usessl: true

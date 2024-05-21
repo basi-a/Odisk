@@ -6,8 +6,8 @@ server:
     privatekey: "cert/server.key"
     cert: "cert/server.crt"
   trusted_proxies:
-    - "172.40.20.14" # HAproxy A
-    - "172.40.20.15" # HAproxy B
+    - "172.30.20.14" # HAproxy A
+    - "172.30.20.15" # HAproxy B
   cros:
     allowOrigins:
       - "https://127.0.0.1"
@@ -60,7 +60,7 @@ database:
     dbPoolConns: 2048
 
 minio:
-  endpoint: "172.40.20.100:9000"
+  endpoint: "172.30.20.100:9000"
   accessKeyID: "minioadmin"
   secretAccessKey: "minioadmin"
   usessl: true
@@ -76,8 +76,8 @@ nsq:
       tcp: "4150"
       http: "4151"
   nsqlookupd:
-    - "172.40.20.24"
-  nsqd: "172.40.20.25"
+    - "172.30.20.24"
+  nsqd: "172.30.20.25"
   topics:
     email:
       - user-auth

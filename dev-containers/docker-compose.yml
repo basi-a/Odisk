@@ -1,30 +1,30 @@
 # Settings and configurations that are common for all containers
 x-common: &common
   extra_hosts:
-      - "db:172.40.20.10"
-      - "adminer:172.40.20.11"
-      - "redis:172.40.20.12"
-      - "nginx:172.40.20.13"
-      - "keepalived.haproxy1:172.40.20.14"
-      - "keepalived.haproxy2:172.40.20.15"
-      - "minio1:172.40.20.16"
-      - "minio2:172.40.20.17"
-      - "minio3:172.40.20.18"
-      - "minio4:172.40.20.19"
-      - "server1:172.40.20.20"
-      - "server2:172.40.20.21"
-      - "server3:172.40.20.22"
-      - "server4:172.40.20.23"
-      - "nsqlookupd:172.40.20.24"
-      - "nsqd:172.40.20.25"
-      - "nsqadmin:172.40.20.26"
-      - "keepalived.vip:172.40.20.100"
+      - "db:172.30.20.10"
+      - "adminer:172.30.20.11"
+      - "redis:172.30.20.12"
+      - "nginx:172.30.20.13"
+      - "keepalived.haproxy1:172.30.20.14"
+      - "keepalived.haproxy2:172.30.20.15"
+      - "minio1:172.30.20.16"
+      - "minio2:172.30.20.17"
+      - "minio3:172.30.20.18"
+      - "minio4:172.30.20.19"
+      - "server1:172.30.20.20"
+      - "server2:172.30.20.21"
+      - "server3:172.30.20.22"
+      - "server4:172.30.20.23"
+      - "nsqlookupd:172.30.20.24"
+      - "nsqd:172.30.20.25"
+      - "nsqadmin:172.30.20.26"
+      - "keepalived.vip:172.30.20.100"
   environment:
     TZ: Asia/Shanghai
   restart: always
   dns:
    - 1.1.1.1
-   - 172.40.20.1
+   - 172.30.20.1
 x-minio-common: &minio-common
   <<: *common
   build:
@@ -38,8 +38,8 @@ x-minio-common: &minio-common
     MINIO_ROOT_USER: minioadmin
     MINIO_ROOT_PASSWORD: minioadmin
     MINIO_REGION_NAME: zh-private-1
-    MINIO_SERVER_URL: https://172.40.20.100:9000
-    MINIO_BROWSER_REDIRECT_URL: https://172.40.20.100:9000
+    MINIO_SERVER_URL: https://172.30.20.100:9000
+    MINIO_BROWSER_REDIRECT_URL: https://172.30.20.100:9000
     MC_HOST_local: https://minioadmin:minioadmin@localhost:9000
 
   healthcheck:
@@ -54,7 +54,7 @@ x-keepalived-haproxy-common: &keepalived-haproxy-common
     context: ./haproxy-keepalived/.
   image: odisk/keepalived-haproxy:latest
   healthcheck:
-    test: ["CMD", "curl", "-u" ,"admin:admin","-I","http://172.40.20.100:8080/admin"]
+    test: ["CMD", "curl", "-u" ,"admin:admin","-I","http://172.30.20.100:8080/admin"]
     interval: 10s
     retries: 10
     timeout: 5s
@@ -131,7 +131,7 @@ services:
   #     timeout: 5s
   #   networks: 
   #     app-network:
-  #       ipv4_address: 172.40.20.10
+  #       ipv4_address: 172.30.20.10
   db:
     <<: *common
     image: postgres:16.2-alpine
@@ -161,7 +161,7 @@ services:
       retries: 3
     networks: 
       app-network:
-        ipv4_address: 172.40.20.10
+        ipv4_address: 172.30.20.10
 
   adminer:
     <<: *common
@@ -176,7 +176,7 @@ services:
         condition: service_healthy
     networks: 
       app-network:
-        ipv4_address: 172.40.20.11
+        ipv4_address: 172.30.20.11
 
   redis:
     <<: *common
@@ -194,7 +194,7 @@ services:
       timeout: 5s
     networks: 
       app-network:
-        ipv4_address: 172.40.20.12
+        ipv4_address: 172.30.20.12
 
   nginx:
     <<: *common
@@ -224,7 +224,7 @@ services:
       timeout: 5s
     networks: 
       app-network:
-        ipv4_address: 172.40.20.13
+        ipv4_address: 172.30.20.13
 
   keepalived_haproxy1:
     <<: *keepalived-haproxy-common
@@ -234,7 +234,7 @@ services:
       - ./haproxy-keepalived/config/haproxy.cfg:/etc/haproxy/haproxy.cfg
     networks: 
       app-network:
-        ipv4_address: 172.40.20.14
+        ipv4_address: 172.30.20.14
 
   keepalived_haproxy2:
     <<: *keepalived-haproxy-common
@@ -244,7 +244,7 @@ services:
       - ./haproxy-keepalived/config/haproxy.cfg:/etc/haproxy/haproxy.cfg
     networks: 
       app-network:
-        ipv4_address: 172.40.20.15
+        ipv4_address: 172.30.20.15
 
   minio1:
     <<: *minio-common
@@ -255,7 +255,7 @@ services:
       - ./minio/data/data1-2:/data2
     networks: 
       app-network:
-        ipv4_address: 172.40.20.16
+        ipv4_address: 172.30.20.16
   minio2:
     <<: *minio-common
     hostname: minio2
@@ -265,7 +265,7 @@ services:
       - ./minio/data/data2-2:/data2
     networks: 
       app-network:
-        ipv4_address: 172.40.20.17
+        ipv4_address: 172.30.20.17
   minio3:
     <<: *minio-common
     hostname: minio3
@@ -275,7 +275,7 @@ services:
       - ./minio/data/data3-2:/data2
     networks: 
       app-network:
-        ipv4_address: 172.40.20.18
+        ipv4_address: 172.30.20.18
   minio4:
     <<: *minio-common
     hostname: minio4
@@ -285,7 +285,7 @@ services:
       - ./minio/data/data4-2:/data2
     networks: 
       app-network:
-        ipv4_address: 172.40.20.19
+        ipv4_address: 172.30.20.19
 
   server1:
     <<: *server-common
@@ -293,34 +293,34 @@ services:
     container_name: odisk-server1
     networks: 
       app-network:
-        ipv4_address: 172.40.20.20
+        ipv4_address: 172.30.20.20
   server2:
     <<: *server-common
     hostname: server2
     container_name: odisk-server2
     networks: 
       app-network:
-        ipv4_address: 172.40.20.21
+        ipv4_address: 172.30.20.21
   server3:
     <<: *server-common
     hostname: server3
     container_name: odisk-server3
     networks: 
       app-network:
-        ipv4_address: 172.40.20.22
+        ipv4_address: 172.30.20.22
   server4:
     <<: *server-common
     hostname: server4
     container_name: odisk-server4
     networks: 
       app-network:
-        ipv4_address: 172.40.20.23
+        ipv4_address: 172.30.20.23
 
   nsqlookupd:
     <<: *common
     image: nsqio/nsq
     container_name: odisk-nsqlookupd
-    command: /nsqlookupd --broadcast-address=172.40.20.24
+    command: /nsqlookupd --broadcast-address=172.30.20.24
     ports:
       - "4160"
       - "4161"
@@ -331,12 +331,12 @@ services:
       retries: 5
     networks: 
       app-network:
-        ipv4_address: 172.40.20.24
+        ipv4_address: 172.30.20.24
   nsqd:
     <<: *common
     image: nsqio/nsq
     container_name: odisk-nsqd
-    command: /nsqd --lookupd-tcp-address=172.40.20.24:4160 --broadcast-address=172.40.20.25
+    command: /nsqd --lookupd-tcp-address=172.30.20.24:4160 --broadcast-address=172.30.20.25
     depends_on:
       - nsqlookupd
     ports:
@@ -349,24 +349,24 @@ services:
       retries: 5
     networks: 
       app-network:
-        ipv4_address: 172.40.20.25
+        ipv4_address: 172.30.20.25
   nsqadmin:
     <<: *common
     image: nsqio/nsq
     container_name: odisk-nsqadmin
-    command: /nsqadmin --lookupd-http-address=172.40.20.24:4161
+    command: /nsqadmin --lookupd-http-address=172.30.20.24:4161
     depends_on:
       - nsqlookupd  
     ports:
       - "4171:4171"
     networks: 
       app-network:
-        ipv4_address: 172.40.20.26
+        ipv4_address: 172.30.20.26
 
 networks:
   app-network:
     driver: bridge
     ipam:
       config:
-        - subnet: 172.40.20.0/24
-          gateway: 172.40.20.1
+        - subnet: 172.30.20.0/24
+          gateway: 172.30.20.1

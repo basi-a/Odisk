@@ -73,7 +73,6 @@ func CreateAndStartNsqConsumer() error {
 		nsqlookupdAddrsWithPort = append(nsqlookupdAddrsWithPort, v+":"+Config.Nsq.Port.Nsqlookupd.HTTP)
 	}
 
-	// consumers := make([]*nsq.Consumer, 0)
 	consumers := make(map[int]*nsq.Consumer, 0)
 	count := -1
 	for topic, channals := range Config.Nsq.Topics {
@@ -91,7 +90,7 @@ func CreateAndStartNsqConsumer() error {
 				return err
 			}
 			count++
-			// consumers = append(consumers, consumer)
+
 			consumers[count]=consumer
 		}
 	}

@@ -7,14 +7,14 @@
 - [x] GORM
 - [x] GIN
 - [x] MinIO
-- [x] Nsq  理论上应该一个服务程序对应一个，然后几个nsqlookupd做均衡负载和服务发现
+- [x] Nsq
 - [X] 数据库设计
 - [x] vue.js
 - [x] https
 - [x] 前端开发
 - [x] 前后端联调
 - [x] 高可用集群模拟
-- [ ] 论文
+- [x] 论文
 # 网络地址规划
 整个网络都是由docker模拟的，以下是`hosts`
 ```yml
@@ -41,20 +41,13 @@ x-hosts-common: &hosts-common
 
 # 食用方式
 ```bash
-mkdir dev-space
-cd dev-space
-git clone https://github.com/basi-a/odisk
-git clone https://github.com/basi-a/odisk-font
-
-cd odisk-font
-npm install
-npm run build
-cp -r dist ../odisk/dev-containers/nginx/dist
-cd ../
-
 cd odisk/cert
 ./create-cert.sh
 cd ../ 
+cd odisk-font
+./build.sh
+cd ../
+cd odisk
 go mod tidy
 ./quick-fun.sh
 ```
